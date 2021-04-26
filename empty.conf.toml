@@ -21,7 +21,7 @@ enableExperimental = true # for future testing features. Safe to ignore
 [credentials]
 admin_chat_id = "<TELEGRAM CHAT ID>" # admin's chat ID
 chat_id_by_roles = [
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "RETAKE=12345" where "12345 is Telegram chat id
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "WIP=67890" where "67890 is another Telegram chat id
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>"  # ..you get the idea.
+    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "RETAKE=12345" where "RETALE" is a short name for status in Kitsu and "12345 is Telegram chat id
+    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "WIP=67890" where "WIP" is a short name for status in Kitsu and "67890 is another Telegram chat id
+    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>"  # ..you got the idea.
 ]
