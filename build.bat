@@ -1,1 +1,1 @@
-go build -o bot.exe src/main.go && bot.exe
+go build -o bot.exe src/main.go
