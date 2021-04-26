@@ -1,0 +1,56 @@
+# github.com/andybalholm/brotli v1.0.0
+github.com/andybalholm/brotli
+# github.com/fatih/color v1.10.0
+## explicit
+github.com/fatih/color
+# github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
+## explicit
+github.com/go-telegram-bot-api/telegram-bot-api
+# github.com/gofiber/fiber/v2 v2.6.0
+## explicit
+github.com/gofiber/fiber/v2
+github.com/gofiber/fiber/v2/internal/bytebufferpool
+github.com/gofiber/fiber/v2/internal/colorable
+github.com/gofiber/fiber/v2/internal/encoding/ascii
+github.com/gofiber/fiber/v2/internal/encoding/json
+github.com/gofiber/fiber/v2/internal/isatty
+github.com/gofiber/fiber/v2/internal/schema
+github.com/gofiber/fiber/v2/internal/uuid
+github.com/gofiber/fiber/v2/middleware/cors
+github.com/gofiber/fiber/v2/utils
+# github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
+## explicit
+github.com/hokaccha/go-prettyjson
+# github.com/klauspost/compress v1.10.7
+## explicit
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
+github.com/klauspost/compress/zlib
+# github.com/mattn/go-colorable v0.1.8
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.12
+github.com/mattn/go-isatty
+# github.com/naoina/go-stringutil v0.1.0
+## explicit
+github.com/naoina/go-stringutil
+# github.com/naoina/toml v0.1.1
+## explicit
+github.com/naoina/toml
+github.com/naoina/toml/ast
+# github.com/technoweenie/multipartstreamer v1.0.1
+## explicit
+github.com/technoweenie/multipartstreamer
+# github.com/valyala/bytebufferpool v1.0.0
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasthttp v1.18.0
+github.com/valyala/fasthttp
+github.com/valyala/fasthttp/fasthttputil
+github.com/valyala/fasthttp/reuseport
+github.com/valyala/fasthttp/stackless
+# github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a
+github.com/valyala/tcplisten
+# golang.org/x/sys v0.0.0-20201210223839-7e3030f88018
+## explicit
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows
