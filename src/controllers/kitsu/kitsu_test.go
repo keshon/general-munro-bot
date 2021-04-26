@@ -27,12 +27,6 @@ func TestGetPerson(t *testing.T) {
 		t.Error("ID")
 	}
 
-	/*
-		if resp.CreatedAt != "2021-03-22T07:39:34" {
-			t.Error("CreatedAt")
-		}
-	*/
-
 	if resp.FirstName != "Innokentiy" {
 		t.Error("FirstName")
 	}
@@ -40,11 +34,6 @@ func TestGetPerson(t *testing.T) {
 	if resp.LastName != "Sokolov" {
 		t.Error("LastName")
 	}
-
-	/*if resp.Email != "sv.krekov@gmail.com" {
-		t.Error("Email")
-	}
-	*/
 
 	if resp.Phone != "@keshon" {
 		t.Error("@keshon")

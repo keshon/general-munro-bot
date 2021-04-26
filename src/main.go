@@ -46,8 +46,15 @@ func listenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 		// Commands
 		if update.Message != nil {
 
+			var chatID int64
+
+			if _, err := strconv.Atoi(conf.Credentials.AdminChatID); err == nil {
+				chatID, _ = strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
+			} else {
+				chatID = int64(update.Message.From.ID)
+			}
+
 			// Listen for admin only command in groups or in private
-			chatID, _ := strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
 			if update.Message.Chat.Type == "group" {
 				if int64(update.Message.From.ID) == chatID {
 					// Listen for bot's UserName
