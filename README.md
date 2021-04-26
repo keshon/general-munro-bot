@@ -77,3 +77,6 @@ chat_id_by_roles = [
 
 ### Last touch
 Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someUsername` - this would allow bot to mention team members if the bot sends messages to the group.
+
+### TODO
+Add multilanguage support.
