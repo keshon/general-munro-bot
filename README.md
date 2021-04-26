@@ -1,5 +1,5 @@
 # General Munro — Telegram notification Bot for Kitsu
-
+![Munro Bot in action](https://github.com/zorg-industries-limited/general-munro-bot/blob/main/misc/munro_in_action.gif)
 ## About
 **General Munro** is a Telegram bot that publish notifications from [Kitsu](https://www.cg-wire.com/en/kitsu.html) via [Custom Actions](https://kitsu.cg-wire.com/custom-actions/).
 
