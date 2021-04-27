@@ -79,4 +79,4 @@ chat_id_by_roles = [
 Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someUsername` - this would allow bot to mention team members if the bot sends messages to the group.
 
 ### Multlang support
-Use conf.toml file to select between Russian and English. You can create your own translation inside `locale` folder.
+Use conf.toml file to select between Russian and English. You can create your own translation inside `locales` folder.
