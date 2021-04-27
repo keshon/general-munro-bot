@@ -41,29 +41,27 @@ type Task struct {
 }
 
 type Person struct {
-	ID string `json:"id"`
-	//CreatedAt                 string `json:"created_at"`
-	//UpdatedAt                 string `json:"updated_at"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	//Email     string `json:"email"`
-	Phone string `json:"phone"`
-	/*
-		Active                    bool   `json:"active"`
-		LastPresence              string `json:"last_presence"`
-		DesktopLogin              string `json:"desktop_login"`
-		ShotgunID                 string `json:"shotgun_id"`
-		Timezone                  string `json:"timezone"`
-		Locale                    string `json:"locale"`
-		Data                      string `json:"data"`
-		Role                      string `json:"role"`
-		HasAvatar                 bool   `json:"has_avatar"`
-		NotificationsEnabled      bool   `json:"notifications_enabled"`
-		NotificationsSlackEnabled bool   `json:"notifications_slack_enabled"`
-		NotificationsSlackUserid  string `json:"notifications_slack_userid"`
-		Type                      string `json:"type"`
-		FullName                  string `json:"full_name"`
-	*/
+	ID                        string `json:"id"`
+	CreatedAt                 string `json:"created_at"`
+	UpdatedAt                 string `json:"updated_at"`
+	FirstName                 string `json:"first_name"`
+	LastName                  string `json:"last_name"`
+	Email                     string `json:"email"`
+	Phone                     string `json:"phone"`
+	Active                    bool   `json:"active"`
+	LastPresence              string `json:"last_presence"`
+	DesktopLogin              string `json:"desktop_login"`
+	ShotgunID                 string `json:"shotgun_id"`
+	Timezone                  string `json:"timezone"`
+	Locale                    string `json:"locale"`
+	Data                      string `json:"data"`
+	Role                      string `json:"role"`
+	HasAvatar                 bool   `json:"has_avatar"`
+	NotificationsEnabled      bool   `json:"notifications_enabled"`
+	NotificationsSlackEnabled bool   `json:"notifications_slack_enabled"`
+	NotificationsSlackUserid  string `json:"notifications_slack_userid"`
+	Type                      string `json:"type"`
+	FullName                  string `json:"full_name"`
 }
 
 type Entity struct {
