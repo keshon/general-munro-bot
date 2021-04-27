@@ -20,13 +20,13 @@ type Config struct {
 		Debug    bool
 	}
 	Bot struct {
-		Token              string
-		StateTimeout       int
-		Debug              bool
-		Webhook            bool
-		Hostname           string
-		ListenHostname     string
-		EnableExperimental bool
+		Token          string
+		StateTimeout   int
+		Debug          bool
+		Webhook        bool
+		Hostname       string
+		ListenHostname string
+		Language       string
 	}
 	Credentials struct {
 		AdminChatID   string

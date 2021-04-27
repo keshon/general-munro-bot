@@ -10,18 +10,18 @@ password = "mysecretpassword" # your Kitsu password
 debug = true # show bunch of boring info
 
 [bot]
-token = "<TELEGRAM BOT TOKEN>" # ask @BotFather in Telegram to obtain one
+token = "<TELEGRAM-BOT-TOKEN>" # ask @BotFather in Telegram to obtain one
 stateTimeout = 600 # poll update period in seconds
 debug = true # show bunch of boring info
 webhook = false # use webhook or poll updates methods. Webhook is faster and reliable but requires a domain
 hostname = "https://url/" # hostname for bot's webhook listener. Trailing slash at the end is mandatory
 listenHostname = "0.0.0.0:1338" # specify port for webhook listener
-enableExperimental = true # for future testing features. Safe to ignore
+language = "en" # en for English and ru for Russian
 
 [credentials]
-admin_chat_id = "<TELEGRAM CHAT ID>" # admin's chat ID
+admin_chat_id = "<TELEGRAM-CHAT-ID>" # admin's chat ID
 chat_id_by_roles = [
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "RETAKE=12345" where "RETALE" is a short name for status in Kitsu and "12345 is Telegram chat id
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>", # e.g. "WIP=67890" where "WIP" is a short name for status in Kitsu and "67890 is another Telegram chat id
-    "<KITSU SHORT STATUS NAME>=<TELEGRAM CHAT ID>"  # ..you got the idea.
+    "<KITSU-SHORT-STATUS-NAME>=<TELEGRAM-CHAT-ID>", # e.g. "RETAKE=12345" where "RETALE" is a short name for status in Kitsu and "12345 is Telegram chat id
+    "<KITSU-SHORT-STATUS-NAME>=<TELEGRAM-CHAT-ID>", # e.g. "WIP=67890" where "WIP" is a short name for status in Kitsu and "67890 is another Telegram chat id
+    "<KITSU-SHORT-STATUS-NAME>=<TELEGRAM-CHAT-ID>"  # ..you got the idea.
 ]

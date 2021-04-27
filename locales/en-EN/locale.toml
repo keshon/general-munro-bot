@@ -1,0 +1,4 @@
+from = "From "
+status = "status"
+for = "for"
+unknown-status = "<b>Warning!</b> No settings found for this status in conf.toml."

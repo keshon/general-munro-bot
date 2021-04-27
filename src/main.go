@@ -17,6 +17,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/hokaccha/go-prettyjson"
+
+	"github.com/kataras/i18n"
 )
 
 func listenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
@@ -201,10 +203,10 @@ func main() {
 			initiate := kitsu.GetPerson(req.UserID)
 
 			if initiate.Phone != "" {
-				messageTemplate = "Уведомление от " + initiate.Phone + "\n"
+				messageTemplate = i18n.Tr(conf.Bot.Language, "from") + initiate.Phone + "\n"
 			}
 			fmt.Println(initiate.Phone)
-			messageTemplate = messageTemplate + assigneePhone + "статус по задаче " + currentEntity.Name + ": <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b>"
+			messageTemplate = messageTemplate + assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for") + " " + currentEntity.Name
 			fmt.Println(string(messageTemplate))
 
 			// Role matching
@@ -216,6 +218,7 @@ func main() {
 				fmt.Println(role + " == " + currentTaskStatusName)
 
 				if role == currentTaskStatusName {
+					// Send message based on conf.toml
 					chatID, _ := strconv.ParseInt(strings.Split(elem, "=")[1], 10, 64)
 					msg := tgbotapi.NewMessage(chatID, messageTemplate)
 					msg.ParseMode = "html"
@@ -227,7 +230,7 @@ func main() {
 			// Send message to Admin if no role matching was done successfuly
 			if messageSent == false {
 				chatID, _ := strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
-				messageTemplate = "<b>Внимание!</b> Настройки для данного статуса не найдены.\n" + messageTemplate
+				messageTemplate = i18n.Tr(conf.Bot.Language, "unknown-status") + "\n" + messageTemplate
 				msg := tgbotapi.NewMessage(chatID, messageTemplate)
 				msg.ParseMode = "html"
 				bot.Send(msg)
