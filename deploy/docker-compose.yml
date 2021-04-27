@@ -20,8 +20,10 @@ services:
       - traefik.http.routers.${ALIAS}.tls.certresolver=letsencrypt
       - traefik.http.middlewares.redirect.redirectscheme.scheme=https
       #cors
+      
       - "traefik.http.middlewares.${ALIAS}Headers.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
       - "traefik.http.middlewares.${ALIAS}Headers.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.${ALIAS}Headers.headers.accesscontrolalloworiginlist=https://${KITSU_HOST}"
       - "traefik.http.middlewares.${ALIAS}Headers.headers.accesscontrolallowheaders=content-type"
       - "traefik.http.middlewares.${ALIAS}Headers.headers.accesscontrolmaxage=100"
       - "traefik.http.middlewares.${ALIAS}Headers.headers.addvaryheader=true"

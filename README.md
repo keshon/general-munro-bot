@@ -14,7 +14,7 @@ The binary file will be `bot.exe` or `bot` respectively.
 ## Docker deploy
 You can deploy the bot using Docker. It is necessary **Docker** and **docker-compose** to be installed on target machine with running [Traefik](https://github.com/zorg-industries-limited/ruby-rhod-fantastic-dockers) reverse proxy.
 
-In order to build and deploy container go to `/deploy` folder, update domain name for `HOST` variable in `.env` file and execute `bash run.sh` script that will git clone sources, compile them, make a docker image and run a container over it.
+In order to build and deploy container go to `/deploy` folder, update bot domain name for `HOST` variable and `KITSU_HOST` for your Kitsu instance in `.env` file and execute `bash run.sh` script that will git clone sources, compile them, make a docker image and run a container over it.
 
 
 ## Configuration
