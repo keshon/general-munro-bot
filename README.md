@@ -58,18 +58,18 @@ Save that ID to `admin_chat_id` variable inside `[credentials]` section and rest
 From now on you can repeat the process of getting chat ids for groups by adding bot to the group and use the same `lookup` command with mentioning bot name this time for example:
 `@GeneralMunro lookup` 
 
-The bot will send you another Telegram response object to your private chat (because you are admin already). Again you need to find chat id and save it to `chat_id_by_roles` array to the **right** side of `=` (equal) sign. The left side is for names of Tasks statuses in Kitsu.
+The bot will send you another Telegram response object to your private chat (because you are admin already). Again you need to find chat id and save it to `chat_id_by_roles` array to the **right** side of `:` sign. The left side is for names of Tasks statuses in Kitsu.
 
 #### Get short names of [task statuses](https://kitsu.cg-wire.com/customization/#modify-an-existing-task-status) in Kitsu.
 Just open Kitsu settings as a Studio Manager and look for `short names` of each Task status.
-Write them to the **left** sie of `=`(equal) sign.
+Write them to the **left** sie of `:` sign.
 
 At the end final settings for `char_id_by_roles` might look like this:
 ```
 chat_id_by_roles = [
-    "RETAKE=12345",
-    "WFA=67890",
-    "DONE"=24680
+    "RETAKE:12345",
+    "WFA:67890",
+    "DONE:24680"
 ]
 ```
 
