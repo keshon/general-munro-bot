@@ -18,21 +18,21 @@ In order to build and deploy container go to `/deploy` folder, update bot domain
 
 
 ## Configuration
-There are certain actions had to be made prior bot compilation.
+There are certain actions had to be made prior bot compilation and deployment.
 
-### @BotFather
-Contact @BotFather in Telegram, register new bot and:
- - get a token.
+### 1. @BotFather
+Contact @BotFather in Telegram and:
+ - get a token for the bot.
  - enable groups access.
  - disable group privacy.
  
-### Kitsu
+### 2. Kitsu
 Inside Kitsu you need to create a Custom Action with the following steps:
 - add bot hostname. If you use Docker deploy it is the one that is stored inside `HOST` variable in `.env` file. If you test the bot on local machine - run the bot and see for the CLI output. The hostname should printed by **Fiber** framework.
 - check all entities type.
 - select ajax mode.
 
-### Config file conf.toml
+### 3. Config file conf.toml
 Bot relies on a config file that should be properly set up. Rename `empty.conf.toml` to `conf.toml` and edit it:
 - store bot token to `token` variable inside `[bot]` section.
 - update `[kitsu]` section accordingly. Note that login credentials must be set for Studio Manager.
