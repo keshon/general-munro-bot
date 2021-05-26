@@ -1,14 +1,14 @@
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
-# github.com/andybalholm/brotli v1.0.0
+# github.com/andybalholm/brotli v1.0.2
 github.com/andybalholm/brotli
-# github.com/fatih/color v1.10.0
+# github.com/fatih/color v1.12.0
 ## explicit
 github.com/fatih/color
 # github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 ## explicit
 github.com/go-telegram-bot-api/telegram-bot-api
-# github.com/gofiber/fiber/v2 v2.6.0
+# github.com/gofiber/fiber/v2 v2.10.0
 ## explicit
 github.com/gofiber/fiber/v2
 github.com/gofiber/fiber/v2/internal/bytebufferpool
@@ -20,22 +20,34 @@ github.com/gofiber/fiber/v2/internal/schema
 github.com/gofiber/fiber/v2/internal/uuid
 github.com/gofiber/fiber/v2/middleware/cors
 github.com/gofiber/fiber/v2/utils
+# github.com/gopherjs/gopherjs v0.0.0-20210519211817-2312de329ae4
+## explicit
 # github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 ## explicit
 github.com/hokaccha/go-prettyjson
+# github.com/jinzhu/inflection v1.0.0
+github.com/jinzhu/inflection
+# github.com/jinzhu/now v1.1.2
+github.com/jinzhu/now
 # github.com/kataras/i18n v0.0.6
 ## explicit
 github.com/kataras/i18n
 github.com/kataras/i18n/internal
-# github.com/klauspost/compress v1.10.7
-## explicit
+# github.com/klauspost/compress v1.12.2
 github.com/klauspost/compress/flate
 github.com/klauspost/compress/gzip
 github.com/klauspost/compress/zlib
+# github.com/kr/text v0.2.0
+## explicit
+# github.com/kylelemons/godebug v1.1.0
+## explicit
 # github.com/mattn/go-colorable v0.1.8
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
+# github.com/mattn/go-sqlite3 v1.14.7
+## explicit
+github.com/mattn/go-sqlite3
 # github.com/naoina/go-stringutil v0.1.0
 ## explicit
 github.com/naoina/go-stringutil
@@ -43,26 +55,30 @@ github.com/naoina/go-stringutil
 ## explicit
 github.com/naoina/toml
 github.com/naoina/toml/ast
+# github.com/smartystreets/assertions v1.2.0
+## explicit
 # github.com/technoweenie/multipartstreamer v1.0.1
 ## explicit
 github.com/technoweenie/multipartstreamer
 # github.com/valyala/bytebufferpool v1.0.0
 github.com/valyala/bytebufferpool
-# github.com/valyala/fasthttp v1.18.0
+# github.com/valyala/fasthttp v1.25.0
+## explicit
 github.com/valyala/fasthttp
 github.com/valyala/fasthttp/fasthttputil
 github.com/valyala/fasthttp/reuseport
 github.com/valyala/fasthttp/stackless
-# github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a
+# github.com/valyala/tcplisten v1.0.0
 github.com/valyala/tcplisten
-# golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0
+# golang.org/x/net v0.0.0-20210525063256-abc453219eb5
+## explicit
 golang.org/x/net/publicsuffix
-# golang.org/x/sys v0.0.0-20201210223839-7e3030f88018
+# golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.3
+# golang.org/x/text v0.3.6
 golang.org/x/text/feature/plural
 golang.org/x/text/internal
 golang.org/x/text/internal/catmsg
@@ -75,7 +91,23 @@ golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/message
 golang.org/x/text/message/catalog
-# gopkg.in/ini.v1 v1.61.0
+# gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
+## explicit
+# gopkg.in/ini.v1 v1.62.0
+## explicit
 gopkg.in/ini.v1
-# gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
 gopkg.in/yaml.v3
+# gorm.io/driver/sqlite v1.1.4
+## explicit
+gorm.io/driver/sqlite
+# gorm.io/gorm v1.21.10
+## explicit
+gorm.io/gorm
+gorm.io/gorm/callbacks
+gorm.io/gorm/clause
+gorm.io/gorm/logger
+gorm.io/gorm/migrator
+gorm.io/gorm/schema
+gorm.io/gorm/utils

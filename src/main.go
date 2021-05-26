@@ -3,152 +3,70 @@ package main
 import (
 	basicauth "bot/src/controllers/basicauth"
 	config "bot/src/controllers/config"
-	kitsu "bot/src/controllers/kitsu"
-	"encoding/json"
-	"fmt"
+	munro "bot/src/controllers/munro"
+	routes "bot/src/controllers/routes"
+	storage "bot/src/controllers/storage"
+
 	"log"
-	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/hokaccha/go-prettyjson"
-
-	"github.com/kataras/i18n"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-func listenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
-	// Conf
-	conf := config.Read()
-
-	for update := range updates {
-
-		// Debug
-		if conf.Bot.Debug == true {
-
-			fmt.Println("--start--")
-
-			dt := time.Now()
-			fmt.Println(dt.String())
-
-			resp, err := prettyjson.Marshal(update)
-			fmt.Println(string(resp))
-			if err != nil {
-				log.Fatal(err)
-				return
-			}
-
-			fmt.Println("--end--\n")
-		}
-
-		// Commands
-		if update.Message != nil {
-
-			var chatID int64
-
-			if _, err := strconv.Atoi(conf.Credentials.AdminChatID); err == nil {
-				chatID, _ = strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
-			} else {
-				chatID = int64(update.Message.From.ID)
-			}
-
-			// Listen for admin only command in groups or in private
-			if update.Message.Chat.Type == "group" {
-				if int64(update.Message.From.ID) == chatID {
-					// Listen for bot's UserName
-					botUserName := "@" + bot.Self.UserName
-					if strings.HasPrefix(update.Message.Text, botUserName) {
-						// Listen for specific word (command)
-						command := strings.Split(update.Message.Text, botUserName+" ")
-						if len(command) > 1 {
-							if command[1] == "lookup" {
-								resp, err := json.MarshalIndent(update, "", "  ")
-								if err != nil {
-									log.Fatal(err)
-									return
-								}
-								msg := tgbotapi.NewMessage(chatID, "<pre>"+string(resp)+"</pre>")
-								msg.ParseMode = "html"
-								bot.Send(msg)
-							}
-						}
-					}
-				}
-			} else {
-				command := update.Message.Text
-				if command == "lookup" {
-					resp, err := json.MarshalIndent(update, "", "  ")
-					if err != nil {
-						log.Fatal(err)
-						return
-					}
-					msg := tgbotapi.NewMessage(chatID, "<pre>"+string(resp)+"</pre>")
-					msg.ParseMode = "html"
-					bot.Send(msg)
-				}
-			}
-		}
-	}
-}
-
 func main() {
+
+	/*
+		Init
+	*/
 	// Conf
 	conf := config.Read()
 
 	// Kitsu auth
+	// TODO: check for token expiration
 	JWTToken := basicauth.AuthForJWTToken(conf.Kitsu.Hostname+"api/auth/login", conf.Kitsu.Email, conf.Kitsu.Password)
 	os.Setenv("JWTToken", JWTToken)
 
-	// Bot
-	// Create instance
+	// Connect to DB
+	db, err := gorm.Open(sqlite.Open("sqlite.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	// Migration
+	db.AutoMigrate(&storage.TaskRecord{})
+
+	/*
+		Telegram Bot
+	*/
 	bot, err := tgbotapi.NewBotAPI(conf.Bot.Token)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	// Webhook or GetUpdate
-	var updates tgbotapi.UpdatesChannel
-	if conf.Bot.Webhook == true {
-		_, err = bot.SetWebhook(tgbotapi.NewWebhook(conf.Bot.Hostname + bot.Token))
-		if err != nil {
-			log.Fatal(err)
-		}
-		info, err := bot.GetWebhookInfo()
-		if err != nil {
-			log.Fatal(err)
-		}
-		if info.LastErrorDate != 0 {
-			log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
-		}
-		updates = bot.ListenForWebhook("/" + bot.Token)
-		go http.ListenAndServe(conf.Bot.ListenHostname, nil)
-	} else {
-		// Delete Webhook
-		_, err = bot.RemoveWebhook()
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Create Update
-		u := tgbotapi.NewUpdate(0)
-		u.Timeout = 100
-
-		updates, _ = bot.GetUpdatesChan(u)
-	}
+	// Create update
+	updates := munro.InitWebhookOrUpdate(bot, conf)
 	updates.Clear()
 
 	// Debug
 	bot.Debug = conf.Bot.Debug
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	// Updates
-	go listenBotUpdates(bot, updates)
+	// Bot updates
+	go munro.ListenBotUpdates(bot, updates, conf)
 
-	// Fiber
-	// Create instance
+	// Parse statuses
+	for x := range time.Tick(time.Duration(conf.Polling.MinsDuration) * time.Minute) {
+		munro.ParseTaskStatuses(bot, conf, x, db)
+	}
+
+	/*
+		Routing
+	*/
 	app := fiber.New()
 
 	// CORS
@@ -162,95 +80,7 @@ func main() {
 		MaxAge:           0,
 	}))
 
-	// Routes
-	app.Post("/", func(c *fiber.Ctx) error {
-
-		type KitsuRequest struct {
-			EntityType   string   `json:"entitytype,omitempty"`
-			OriginURL    string   `json:"originurl,omitempty"`
-			OriginServer string   `json:"originserver,omitempty"`
-			Selection    []string `json:"selection,omitempty"`
-			ProductionID string   `json:"productionid"`
-			UserID       string   `json:"userid"`
-			UserEmail    string   `json:"useremail"`
-		}
-
-		req := new(KitsuRequest)
-		if err := c.BodyParser(req); err != nil {
-			return err
-		}
-
-		for _, elem := range req.Selection {
-
-			currentTask := kitsu.GetTask(elem)
-			TaskStatusID := currentTask.TaskStatusID
-			currentTaskStatus := kitsu.GetTaskStatus(TaskStatusID)
-
-			currentEntity := kitsu.GetEntity(currentTask.EntityID)
-			var assigneePhone = ""
-			if len(currentTask.Assignees) > 0 {
-				for _, elem := range currentTask.Assignees {
-					currentAssingnee := kitsu.GetPerson(elem)
-					if currentAssingnee.Phone != "" {
-						assigneePhone = assigneePhone + currentAssingnee.Phone + ", "
-					}
-				}
-			}
-
-			// Compose message
-			var messageTemplate string = ""
-			initiate := kitsu.GetPerson(req.UserID)
-
-			if initiate.Phone != "" {
-				messageTemplate = i18n.Tr(conf.Bot.Language, "from") + initiate.Phone + "\n"
-			}
-
-			messageTemplate = messageTemplate + assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for") + " " + currentEntity.Name
-
-			// Send message by Role matching
-			var messageSent = false
-			for _, elem := range conf.Credentials.ChatIDByRoles {
-				role := strings.ToLower(strings.Split(elem, ":")[0]) // extract role name and make it lowercase
-				currentTaskStatusName := strings.ToLower(currentTaskStatus.ShortName)
-				if role == currentTaskStatusName {
-					// get all chat ids
-					chatIDs := strings.Split(elem, ":")[1]
-					if len(strings.Split(chatIDs, "|")) > 0 {
-						chatID, _ := strconv.ParseInt(strings.Split(chatIDs, "|")[0], 10, 64)
-						msg := tgbotapi.NewMessage(chatID, messageTemplate)
-						msg.ParseMode = "html"
-						bot.Send(msg)
-						messageSent = true
-
-						// confirmation
-						chatID, _ = strconv.ParseInt(strings.Split(chatIDs, "|")[1], 10, 64)
-						msg = tgbotapi.NewMessage(chatID, "\xF0\x9F\x91\x8D")
-						msg.ParseMode = "html"
-						bot.Send(msg)
-						messageSent = true
-					} else {
-						chatID, _ := strconv.ParseInt(chatIDs, 10, 64)
-						msg := tgbotapi.NewMessage(chatID, messageTemplate)
-						msg.ParseMode = "html"
-						bot.Send(msg)
-						messageSent = true
-					}
-
-				}
-			}
-
-			// Send message to Admin if no role matching was done successfuly
-			if messageSent == false {
-				chatID, _ := strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
-				messageTemplate = i18n.Tr(conf.Bot.Language, "unknown-status") + "\n" + messageTemplate
-				msg := tgbotapi.NewMessage(chatID, messageTemplate)
-				msg.ParseMode = "html"
-				bot.Send(msg)
-			}
-		}
-
-		return c.JSON("OK")
-	})
-
+	// Public API routes
+	routes.PublicAPIRoutes(app, bot)
 	app.Listen(":3001")
 }

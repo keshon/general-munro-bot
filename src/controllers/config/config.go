@@ -32,12 +32,15 @@ type Config struct {
 		AdminChatID   string
 		ChatIDByRoles []string
 	}
+	Polling struct {
+		MinsDuration int
+	}
 }
 
 func Read() Config {
 	path := "conf.toml"
 	if os.Getenv("TEST") == "true" {
-		path = "c:\\Users\\SokolovIA\\Dropbox\\Projects\\Webdev\\kitsu-telegram-bot\\conf.toml"
+		path = "c:/Users/SokolovIA/Dropbox/Projects/GitHub/general-munro-bot/conf.toml"
 	}
 
 	f, err := os.Open(path)
