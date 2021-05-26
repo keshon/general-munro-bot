@@ -202,7 +202,7 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 
 	var messageSent = false
 	for _, elem := range conf.Credentials.ChatIDByRoles {
-		role := strings.ToLower(elem) // extract role name and make it lowercase
+		role := strings.ToLower(strings.Split(elem, ":")[0]) // extract role name and make it lowercase
 		currentTaskStatusName := strings.ToLower(taskStatus)
 
 		// find chat id
