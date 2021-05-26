@@ -208,7 +208,9 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 		// find chat id
 		var chatID int64
 		if role == currentTaskStatusName {
-			chatID, _ = strconv.ParseInt(elem, 10, 64)
+			//chatID, _ = strconv.ParseInt(elem, 10, 64)
+			chatIDs := strings.Split(elem, ":")[1]
+			chatID, _ = strconv.ParseInt(chatIDs, 10, 64)
 			// send
 			msg := tgbotapi.NewMessage(chatID, message)
 			msg.ParseMode = "html"
