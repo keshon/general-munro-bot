@@ -1,7 +1,7 @@
 # General Munro — Telegram notification Bot for Kitsu
 ![Munro Bot in action](https://github.com/zorg-industries-limited/general-munro-bot/blob/main/misc/munro_in_action.gif)
 ## About
-**General Munro** is a Telegram bot that publish notifications from [Kitsu](https://www.cg-wire.com/en/kitsu.html) via [Custom Actions](https://kitsu.cg-wire.com/custom-actions/).
+**General Munro** is a Telegram bot that publish notifications from [Kitsu](https://www.cg-wire.com/en/kitsu.html) via automatic polling.
 
 ### ⚠ Schrödinger's warning
 This code is in Superposition and may work or may not work at all.
@@ -26,13 +26,7 @@ Contact @BotFather in Telegram and:
  - enable groups access.
  - disable group privacy.
  
-### 2. Kitsu
-Inside Kitsu you need to create a Custom Action with the following steps:
-- add bot hostname. If you use Docker deploy it is the one that is stored inside `HOST` variable in `.env` file. If you test the bot on local machine - run the bot and see for the CLI output. The hostname should printed by **Fiber** framework.
-- check all entities type.
-- select ajax mode.
-
-### 3. Config file conf.toml
+### 2. Config file conf.toml
 Bot relies on a config file that should be properly set up. Rename `empty.conf.toml` to `conf.toml` and edit it:
 - store bot token to `token` variable inside `[bot]` section.
 - update `[kitsu]` section accordingly. Note that login credentials must be set for Studio Manager.
@@ -42,7 +36,7 @@ Bot relies on a config file that should be properly set up. Rename `empty.conf.t
 #### Get chat ID for each Telegram contact bot should write to. 
 It can be private chat or a group.
 
-Before going any further you need to become an administrator. To do so let's get our own `chat id` by writing to bot privately with a keyword `lookup` - the bot will print Telegram response object where we need to find `id` key inside `chat`: 
+Before going any further you need to become an administrator. To do so let's get our own `chat id` by writing to bot privately with a command `/lookup` - the bot will print Telegram response object where we need to find `id` key inside `chat`: 
 ```
 "message": {
     ...
@@ -80,3 +74,8 @@ Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someU
 
 ### Multlang support
 Use conf.toml file to select between Russian and English. You can create your own translation inside `locales` folder.
+
+### TODO
+- truncate long comments
+- fix logical error where same statuses are ignored (add last time comment column)
+- add silent db update (for the first run)
