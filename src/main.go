@@ -60,7 +60,7 @@ func main() {
 	go munro.ListenBotUpdates(bot, updates, conf)
 
 	// Parse statuses
-	for x := range time.Tick(time.Duration(conf.Polling.MinsDuration) * time.Minute) {
+	for x := range time.Tick(time.Duration(conf.Messaging.PollDuration) * time.Minute) {
 		munro.ParseTaskStatuses(bot, conf, x, db)
 	}
 

@@ -32,8 +32,10 @@ type Config struct {
 		AdminChatID   string
 		ChatIDByRoles []string
 	}
-	Polling struct {
-		MinsDuration int
+	Messaging struct {
+		PollDuration      int
+		CommentTruncateAt int
+		SilentUpdate      bool
 	}
 }
 

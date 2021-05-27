@@ -4,6 +4,7 @@ import (
 	"bot/src/controllers/config"
 	"bot/src/controllers/kitsu"
 	"bot/src/controllers/storage"
+	"bot/src/utils/truncate"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -165,9 +166,14 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 					return currentComments.Each[i].UpdatedAt > currentComments.Each[j].UpdatedAt
 				})
 
+				truncatedComment := truncate.TruncateString(currentComments.Each[0].Text, 128)
+				if truncatedComment != currentComments.Each[0].Text {
+					truncatedComment += "..."
+				}
+
 				if currentComments.Each[0].Text != "" {
 					commentAuthor := kitsu.GetPerson(currentComments.Each[0].PersonID)
-					commentMessage = " " + i18n.Tr(conf.Bot.Language, "with-comment") + "\n<pre>" + commentAuthor.FullName + ":\n" + currentComments.Each[0].Text + "</pre>"
+					commentMessage = " " + i18n.Tr(conf.Bot.Language, "with-comment") + "\n<pre>" + commentAuthor.FullName + ":\n" + truncatedComment + "</pre>"
 				}
 			}
 
@@ -184,14 +190,18 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 				// create
 				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName)
 				// say
-				sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
+				if conf.Messaging.SilentUpdate != true {
+					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
+				}
 			} else {
 				// TODO or date mismatch
 				if result.TaskStatus != currentTaskStatus.ShortName {
 					// update
 					storage.UpdateRecord(db, task.ID, currentTaskStatus.ShortName)
 					// say
-					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
+					if conf.Messaging.SilentUpdate != true {
+						sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
+					}
 				}
 			}
 		}
