@@ -188,16 +188,16 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 			result := storage.FindRecord(db, task.ID)
 			if len(result.TaskID) <= 0 {
 				// create
-				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName)
+				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
 				// say
 				if conf.Messaging.SilentUpdate != true {
 					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 				}
 			} else {
 				// TODO or date mismatch
-				if result.TaskStatus != currentTaskStatus.ShortName {
+				if result.TaskStatus != currentTaskStatus.ShortName || result.TaskLastUpdate != task.LastCommentDate {
 					// update
-					storage.UpdateRecord(db, task.ID, currentTaskStatus.ShortName)
+					storage.UpdateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
 					// say
 					if conf.Messaging.SilentUpdate != true {
 						sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)

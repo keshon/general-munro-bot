@@ -29,7 +29,7 @@ type Task struct {
 	EndDate         interface{} `json:"end_date,omitempty"`
 	DueDate         interface{} `json:"due_date,omitempty"`
 	RealStartDate   interface{} `json:"real_start_date,omitempty"`
-	LastCommentDate interface{} `json:"last_comment_date,omitempty"`
+	LastCommentDate string      `json:"last_comment_date,omitempty"`
 	Data            interface{} `json:"data,omitempty"`
 	ShotgunID       interface{} `json:"shotgun_id,omitempty"`
 	ProjectID       string      `json:"project_id,omitempty"`

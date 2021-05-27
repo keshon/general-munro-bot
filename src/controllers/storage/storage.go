@@ -16,14 +16,15 @@ type TaskRecord struct {
 	TaskLastUpdate string
 }
 
-func CreateRecord(db *gorm.DB, taskID, taskStatus string) {
-	db.Create(&TaskRecord{TaskID: taskID, TaskStatus: taskStatus})
+func CreateRecord(db *gorm.DB, taskID, taskStatus, lastUpdate string) {
+	db.Create(&TaskRecord{TaskID: taskID, TaskStatus: taskStatus, TaskLastUpdate: lastUpdate})
 }
 
-func UpdateRecord(db *gorm.DB, taskID, taskStatus string) {
+func UpdateRecord(db *gorm.DB, taskID, taskStatus, lastUpdate string) {
 	var taskRecord TaskRecord
 	db.Where("task_id=?", taskID).Find(&taskRecord)
 	taskRecord.TaskStatus = taskStatus
+	taskRecord.TaskLastUpdate = lastUpdate
 	db.Save(&taskRecord)
 }
 
