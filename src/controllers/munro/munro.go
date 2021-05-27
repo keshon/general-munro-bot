@@ -186,15 +186,8 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 
 			// Decision making
 			result := storage.FindRecord(db, task.ID)
-			if len(result.TaskID) <= 0 {
-				// create
-				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
-				// say
-				if conf.Messaging.SilentUpdate != true {
-					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
-				}
-			} else {
-				// TODO or date mismatch
+			if len(result.TaskID) > 0 {
+				// check if status is different or last comment date don't match
 				if result.TaskStatus != currentTaskStatus.ShortName || result.TaskLastUpdate != task.LastCommentDate {
 					// update
 					storage.UpdateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
@@ -202,6 +195,14 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 					if conf.Messaging.SilentUpdate != true {
 						sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 					}
+				}
+
+			} else {
+				// create
+				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
+				// say
+				if conf.Messaging.SilentUpdate != true {
+					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 				}
 			}
 		}
@@ -228,8 +229,9 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 			messageSent = true
 		}
 	}
-	// Send message to Admin if no role matching was done successfuly
-	if messageSent == false {
+
+	// Send message to Admin if no role matching was done successfuly and supress is disabled
+	if messageSent == false && conf.Messaging.SuppressUndefinedRoles != true {
 		chatID, _ := strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
 		message = i18n.Tr(conf.Bot.Language, "unknown-status") + "\n" + message
 		msg := tgbotapi.NewMessage(chatID, message)

@@ -33,9 +33,10 @@ type Config struct {
 		ChatIDByRoles []string
 	}
 	Messaging struct {
-		PollDuration      int
-		CommentTruncateAt int
-		SilentUpdate      bool
+		PollDuration           int
+		CommentTruncateAt      int
+		SilentUpdate           bool
+		SuppressUndefinedRoles bool
 	}
 }
 
