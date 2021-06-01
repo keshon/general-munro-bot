@@ -162,6 +162,8 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 			var commentID = ""
 			var commentUpdatedAt = ""
 
+			var debug = ""
+
 			currentComments := kitsu.GetComment(currentDetailedTask.ID)
 			if len(currentComments.Each) > 0 {
 				// find the most recent comment in array
@@ -177,6 +179,8 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 					}
 					return a.Unix() > b.Unix()
 				})
+
+				debug = "Newest comment is \n - updated: " + currentComments.Each[0].UpdatedAt + "\n - text: " + currentComments.Each[0].Text
 
 				commentID = currentComments.Each[0].ID
 				commentUpdatedAt = currentComments.Each[0].UpdatedAt
@@ -194,6 +198,10 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 			}
 
 			// Decision making
+
+			var messageTemplate string
+			messageTemplate += "<pre>" + debug + "</pre>\n"
+
 			result := storage.FindRecord(db, task.ID)
 			if len(result.TaskID) > 0 {
 				// check if status is different or last comment date don't match
@@ -204,11 +212,10 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 					// say
 					if conf.Messaging.SilentUpdate != true {
 
-						var messageTemplate string
 						// Same status or not
 						if result.TaskStatus != currentTaskStatus.ShortName {
 							// Compose message
-							messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + result.TaskStatus + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+							messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + strings.ToLower(result.TaskStatus) + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
 						} else {
 							messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
 						}
@@ -240,7 +247,7 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 				if conf.Messaging.SilentUpdate != true {
 
 					// Compose message
-					messageTemplate := assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+					messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
 
 					if commentMessage != "" {
 						messageTemplate += commentMessage
