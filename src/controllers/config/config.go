@@ -37,6 +37,7 @@ type Config struct {
 		CommentTruncateAt      int
 		SilentUpdate           bool
 		SuppressUndefinedRoles bool
+		//ExcludedTasks          []string
 	}
 }
 

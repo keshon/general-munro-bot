@@ -1,7 +1,8 @@
 from = "From "
-status = "status updated to"
-for = "for"
+updated-status = "status updated"
+status = "status"
+new-status = "new status"
+for-task = "for"
+prev-status = "was"
 unknown-status = "<b>Warning!</b>\nNo settings found for this status in conf.toml."
-with-comment = "with a comment"
-
 about = "«General Munro» — Telegram notification bot for Kitsu (CG Wire).\nDeveloped by <a href=\"https://keshon.ru\">Innokentiy Sokolov</a>.\nMoscow — © 2021. \nVesion 21.05.26"

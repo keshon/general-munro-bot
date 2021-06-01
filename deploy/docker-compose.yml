@@ -7,6 +7,8 @@ services:
     tty: true
     volumes:
       - ./data/conf.toml:/usr/project/conf.toml
+      - ./data/locales:/usr/project/locales
+      - ./data/sqlite.db:/usr/project/sqlite.db      
     networks:
       - proxy
     ports:

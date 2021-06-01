@@ -159,12 +159,28 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 
 			// Get comment
 			var commentMessage = ""
+			var commentID = ""
+			var commentUpdatedAt = ""
+
 			currentComments := kitsu.GetComment(currentDetailedTask.ID)
 			if len(currentComments.Each) > 0 {
 				// find the most recent comment in array
 				sort.Slice(currentComments.Each, func(i, j int) bool {
-					return currentComments.Each[i].UpdatedAt > currentComments.Each[j].UpdatedAt
+					layout := "2006-01-02T15:04:05"
+					a, err := time.Parse(layout, currentComments.Each[i].UpdatedAt)
+					if err != nil {
+						fmt.Println(err)
+					}
+					b, err := time.Parse(layout, currentComments.Each[j].UpdatedAt)
+					if err != nil {
+						fmt.Println(err)
+					}
+					return a.Unix() > b.Unix()
 				})
+
+				commentID = currentComments.Each[0].ID
+				commentUpdatedAt = currentComments.Each[0].UpdatedAt
+				//commentAuthor = kitsu.GetPerson(currentComments.Each[0].PersonID)
 
 				truncatedComment := truncate.TruncateString(currentComments.Each[0].Text, 128)
 				if truncatedComment != currentComments.Each[0].Text {
@@ -173,35 +189,62 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 
 				if currentComments.Each[0].Text != "" {
 					commentAuthor := kitsu.GetPerson(currentComments.Each[0].PersonID)
-					commentMessage = " " + i18n.Tr(conf.Bot.Language, "with-comment") + "\n<pre>" + commentAuthor.FullName + ":\n" + truncatedComment + "</pre>"
+					commentMessage = "\n<pre>" + commentAuthor.FullName + ":\n" + truncatedComment + "</pre>"
 				}
-			}
-
-			// Compose message
-			messageTemplate := assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for") + " " + entityName
-
-			if commentMessage != "" {
-				messageTemplate += commentMessage
 			}
 
 			// Decision making
 			result := storage.FindRecord(db, task.ID)
 			if len(result.TaskID) > 0 {
 				// check if status is different or last comment date don't match
-				if result.TaskStatus != currentTaskStatus.ShortName || result.TaskLastUpdate != task.LastCommentDate {
+				if result.TaskStatus != currentTaskStatus.ShortName || result.TaskUpdatedAt != task.UpdatedAt {
 					// update
-					storage.UpdateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
+					storage.UpdateRecord(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
+
 					// say
 					if conf.Messaging.SilentUpdate != true {
+
+						var messageTemplate string
+						// Same status or not
+						if result.TaskStatus != currentTaskStatus.ShortName {
+							// Compose message
+							messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + result.TaskStatus + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+						} else {
+							messageTemplate = assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+						}
+
+						if commentMessage != "" {
+							layout := "2006-01-02T15:04:05"
+							db, err := time.Parse(layout, result.CommentUpdatedAt)
+							if err != nil {
+								fmt.Println(err)
+							}
+							comment, err := time.Parse(layout, commentUpdatedAt)
+							if err != nil {
+								fmt.Println(err)
+							}
+
+							if comment.Unix() > db.Unix() {
+								messageTemplate += commentMessage
+							}
+						}
+
 						sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 					}
 				}
 
 			} else {
 				// create
-				storage.CreateRecord(db, task.ID, currentTaskStatus.ShortName, task.LastCommentDate)
+				storage.CreateRecord(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
 				// say
 				if conf.Messaging.SilentUpdate != true {
+
+					// Compose message
+					messageTemplate := assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+
+					if commentMessage != "" {
+						messageTemplate += commentMessage
+					}
 					sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 				}
 			}
@@ -226,6 +269,10 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 			msg := tgbotapi.NewMessage(chatID, message)
 			msg.ParseMode = "html"
 			bot.Send(msg)
+
+			// Calling Sleep method
+			time.Sleep(5 * time.Second)
+
 			messageSent = true
 		}
 	}

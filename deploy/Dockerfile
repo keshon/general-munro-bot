@@ -1,5 +1,7 @@
 FROM golang:1.16-alpine AS mybuildstage
 
+RUN apk add build-base
+
 ADD project-src /usr/project
 
 WORKDIR /usr/project
