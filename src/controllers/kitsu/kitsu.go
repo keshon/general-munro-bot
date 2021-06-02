@@ -174,7 +174,7 @@ func GetTasks() Tasks {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(os.Getenv("JWTToken"))
+	//fmt.Println(os.Getenv("JWTToken"))
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
@@ -215,7 +215,7 @@ func GetTask(taskID string) Task {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(os.Getenv("JWTToken"))
+	//fmt.Println(os.Getenv("JWTToken"))
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
@@ -275,7 +275,7 @@ func GetPerson(personID string) Person {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(string(respBody))
+	//fmt.Println(string(respBody))
 
 	// Display results
 	debug.Info(resp, respBody)
