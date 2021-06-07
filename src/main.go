@@ -93,5 +93,5 @@ func main() {
 
 	routes.APIRoutes(app, bot, db)
 
-	app.Listen(":3001")
+	app.Listen(conf.Kitsu.ListenHostname)
 }

@@ -14,15 +14,16 @@ type Config struct {
 		AllowHeaders string
 	}
 	Kitsu struct {
-		Hostname string
-		Email    string
-		Password string
-		Debug    bool
+		Debug          bool
+		Hostname       string
+		Email          string
+		Password       string
+		ListenHostname string
 	}
 	Bot struct {
+		Debug          bool
 		Token          string
 		StateTimeout   int
-		Debug          bool
 		Webhook        bool
 		Hostname       string
 		ListenHostname string
