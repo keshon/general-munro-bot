@@ -11,9 +11,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func PublicAPIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB) {
+func APIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB) {
 	// API
-	api := app.Group("/public-api")
+	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
 	// give response when at /api

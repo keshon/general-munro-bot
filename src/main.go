@@ -81,6 +81,6 @@ func main() {
 	}))
 
 	// Public API routes
-	routes.PublicAPIRoutes(app, bot, db)
+	routes.APIRoutes(app, bot, db)
 	app.Listen(":3001")
 }
