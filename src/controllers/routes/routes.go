@@ -16,7 +16,7 @@ func APIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	// give response when at /api
+	// give response when at /api/v1
 	v1.Get("", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": true,

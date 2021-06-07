@@ -80,7 +80,16 @@ func main() {
 		MaxAge:           0,
 	}))
 
-	// Public API routes
+	// API routes
+	// give response when at /api/v1
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+			"message": "Hello",
+		})
+	})
+
 	routes.APIRoutes(app, bot, db)
+
 	app.Listen(":3001")
 }
