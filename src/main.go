@@ -60,9 +60,11 @@ func main() {
 	go munro.ListenBotUpdates(bot, updates, conf)
 
 	// Parse statuses
-	for x := range time.Tick(time.Duration(conf.Messaging.PollDuration) * time.Minute) {
-		munro.ParseTaskStatuses(bot, conf, x, db)
-	}
+	go func() {
+		for x := range time.Tick(time.Duration(conf.Messaging.PollDuration) * time.Minute) {
+			munro.ParseTaskStatuses(bot, conf, x, db)
+		}
+	}()
 
 	/*
 		Routing
