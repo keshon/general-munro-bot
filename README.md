@@ -28,7 +28,7 @@ Contact Telegram @BotFather and:
 ### Step 2. Update conf.toml file
 Rename `empty.conf.toml` to `conf.toml` and update each section accordingly. Each section contains verbose comments but if you stuck feel free to open issue ticket.
 
-#### Step 3. Last touches
+### Step 3. Last touches
 ##### Make Telegram mentions via "@"
 Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someUsername` - this allows bot to mention team members if the bot sends messages to the group.
 
