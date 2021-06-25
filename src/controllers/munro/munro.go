@@ -6,6 +6,7 @@ import (
 	"bot/src/controllers/storage"
 	"bot/src/controllers/wasabi"
 	"bot/src/utils/truncate"
+	"bot/src/utils/utf8convert"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -358,18 +359,27 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 
 		// Get entity name (Top Task)
 		entity := kitsu.GetEntity(task.EntityID)
-		entityName := entity.Name
+		entityName := ""
+		if entity.Name != "" {
+			entityName = utf8convert.ConvrtToUTF8(entity.Name, "utf-8") + "/"
+		}
 
 		// Get task type (Sub Task)
 		taskType := kitsu.GetTaskType(task.TaskTypeID)
 		taskTypeName := ""
 		if taskType.Name != "" {
-			taskTypeName = taskType.Name + "/"
+			taskTypeName = utf8convert.ConvrtToUTF8(taskType.Name, "utf-8") + "/"
 		}
+
+		// Get Project
 		project := kitsu.GetProject(task.ProjectID)
+		projectName := ""
+		if project.Name != "" {
+			projectName = utf8convert.ConvrtToUTF8(project.Name, "utf-8") + "/"
+		}
 		//projectStatus := kitsu.GetProjectStatus(project.ProjectStatusID)
 
-		s3Path = conf.Backup.S3.RootFolderName + "/" + project.Name + "/" + entityName + "/" + taskTypeName + attachment.Name
+		s3Path = conf.Backup.S3.RootFolderName + "/" + projectName + entityName + taskTypeName + attachment.Name
 	} else {
 		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachment.Name
 	}
