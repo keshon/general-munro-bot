@@ -22,3 +22,4 @@ conf.toml
 tests.bat
 /tools
 *.db
+/release

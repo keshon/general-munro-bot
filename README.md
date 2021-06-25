@@ -35,7 +35,7 @@ Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someU
 ##### Multlang support
 Use conf.toml file to select between Russian and English. You can create your own translation inside `locales` folder if nessesary.
 
-### Deployement
+### Deployment
 You can deploy the app using Docker. To achieve this with suplied deloy scripts it is necessary **Docker**, **docker-compose** and [Traefik](https://github.com/zorg-industries-limited/ruby-rhod-fantastic-dockers) to be installed on target machine.
 
 In order to build and deploy container in one hit go to `/deploy` folder, update app domain name for `HOST` variable and `KITSU_HOST` for your Kitsu instance in `.env` file - then execute `bash run.sh`. The script will git clone sources, compile them, make a docker image and run a container over it.
