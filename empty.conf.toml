@@ -58,7 +58,7 @@ chat_id_by_roles = [
 # If fast delete is set to true - uploaded file to S3 will be deleted from local dir immediately.
 [backup]
 poll_duration = 360 # in minutes
-local_storage = "./tmp" # trailing slash is mandatory
+local_storage = "./tmp/" # trailing slash is mandatory
 ignore = ["jpg", "jpeg", "JPG", "JPEG"]
 fast_delete = true
 
