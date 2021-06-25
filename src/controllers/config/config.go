@@ -29,16 +29,28 @@ type Config struct {
 		ListenHostname string
 		Language       string
 	}
-	Credentials struct {
-		AdminChatID   string
-		ChatIDByRoles []string
-	}
-	Messaging struct {
+	Notification struct {
 		PollDuration           int
 		CommentTruncateAt      int
 		SilentUpdate           bool
 		SuppressUndefinedRoles bool
-		//ExcludedTasks          []string
+		AdminChatID            string
+		ChatIDByRoles          []string
+	}
+	Backup struct {
+		PollDuration int
+		LocalStorage string
+		Ignore       []string
+		FastDelete   bool
+		S3           struct {
+			AccessKey        string
+			SecretKey        string
+			BucketName       string
+			Endpoint         string
+			Region           string
+			S3ForcePathStyle bool
+			RootFolderName   string
+		}
 	}
 }
 

@@ -34,7 +34,7 @@ import (
 )
 
 // Version of current fiber package
-const Version = "2.10.0"
+const Version = "2.13.0"
 
 // Handler defines a function to serve HTTP requests.
 type Handler = func(*Ctx) error
@@ -173,6 +173,11 @@ type Config struct {
 	//
 	// Default: nil
 	Views Views `json:"-"`
+
+	// Views Layout is the global layout for all template render until override on Render function.
+	//
+	// Default: ""
+	ViewsLayout string `json:"views_layout"`
 
 	// The amount of time allowed to read the full request including body.
 	// It is reset after the request handler has returned.

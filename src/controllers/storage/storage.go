@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type TaskRecord struct {
+type Task struct {
 	ID               uint `gorm:"primaryKey"`
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -18,12 +18,22 @@ type TaskRecord struct {
 	CommentUpdatedAt string
 }
 
-func CreateRecord(db *gorm.DB, taskID, taskUpdatedAt, taskStatus, commentID, commentUpdatedAt string) {
-	db.Create(&TaskRecord{TaskID: taskID, TaskUpdatedAt: taskUpdatedAt, TaskStatus: taskStatus, CommentUpdatedAt: commentUpdatedAt, CommentID: commentID})
+type Attachment struct {
+	ID                  uint `gorm:"primaryKey"`
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	DeletedAt           gorm.DeletedAt `gorm:"index"`
+	AttachmentID        string
+	AttachmentUpdatedAt string
+	AttachmentStatus    string
 }
 
-func UpdateRecord(db *gorm.DB, taskID, taskUpdatedAt, taskStatus, commentID, commentUpdatedAt string) {
-	var rec TaskRecord
+func CreateTask(db *gorm.DB, taskID, taskUpdatedAt, taskStatus, commentID, commentUpdatedAt string) {
+	db.Create(&Task{TaskID: taskID, TaskUpdatedAt: taskUpdatedAt, TaskStatus: taskStatus, CommentUpdatedAt: commentUpdatedAt, CommentID: commentID})
+}
+
+func UpdateTask(db *gorm.DB, taskID, taskUpdatedAt, taskStatus, commentID, commentUpdatedAt string) {
+	var rec Task
 	db.Where("task_id=?", taskID).Find(&rec)
 	rec.TaskUpdatedAt = taskUpdatedAt
 	rec.TaskStatus = taskStatus
@@ -32,8 +42,27 @@ func UpdateRecord(db *gorm.DB, taskID, taskUpdatedAt, taskStatus, commentID, com
 	db.Save(&rec)
 }
 
-func FindRecord(db *gorm.DB, taskID string) TaskRecord {
-	var taskRecord TaskRecord
-	db.First(&taskRecord, "task_id = ?", taskID) // find product with code D42
-	return taskRecord
+func FindTask(db *gorm.DB, taskID string) Task {
+	var Task Task
+	db.First(&Task, "task_id = ?", taskID) // find product with code D42
+	return Task
+}
+
+func CreateAttachment(db *gorm.DB, attachmentID, attachmentUpdatedAt, attachmentStatus string) {
+	db.Create(&Attachment{AttachmentID: attachmentID, AttachmentUpdatedAt: attachmentUpdatedAt, AttachmentStatus: attachmentStatus})
+}
+
+func UpdateAttachment(db *gorm.DB, attachmentID, attachmentUpdatedAt, attachmentStatus string) {
+	var rec Attachment
+	db.Where("attachment_id=?", attachmentID).Find(&rec)
+	rec.AttachmentUpdatedAt = attachmentUpdatedAt
+	rec.AttachmentStatus = attachmentStatus
+
+	db.Save(&rec)
+}
+
+func FindAttachment(db *gorm.DB, attachmentID string) Attachment {
+	var Attachment Attachment
+	db.First(&Attachment, "attachment_id = ?", attachmentID) // find product with code D42
+	return Attachment
 }

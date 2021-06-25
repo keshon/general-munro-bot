@@ -1,34 +1,73 @@
+# General Munro configuration file
+
+# CORS was needed to allow Kitsu Custom Action to work in AJAX mode for manually triggered notifications via Telegram bot
+# Kitsu Custom Action support is dropped but CORS settings still remains. Just keep it as it is if you don't know how to deal with it.
 [cors]
-allow_origins="*"
-allow_methods="GET,POST,HEAD,PUT,DELETE,PATCH"
-allow_headers="Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept"
+allow_origins = "*"
+allow_methods = "GET,POST,HEAD,PUT,DELETE,PATCH"
+allow_headers = "Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept"
 
+# Kitsu relating settings. Specify Hostname of your Kitsu instance e.g. "https://kitsu-example.com/".
+# Email is password must belong to Kitsu account with `Studio Manager` role.
+# listenHostname is like CORS - not needed to do anything with it for now.
 [kitsu]
-debug = true # show bunch of boring info
-hostname = "http://localhost:3000/" # hostname for Kitsu. Trailing slash at the end is mandatory
-email = "admin@example.com" # your Kitsu login
-password = "mysecretpassword" # your Kitsu password
-listenHostname = "127.0.0.1:3001" # hostname listener for Kitsu custom actions
+debug = false
+hostname = "https://url/" # trailing slash is mandatory
+email = "" # your Kitsu login
+password = "" # # your Kitsu password
+listenHostname = "127.0.0.1:3001" # hostname listener for Kitsu custom actions (no need it)
 
+# Telegram bot relating settings in order to receive all sorts of notifications via Telegram
+# You need obtain Bot token via @BotFather and also(!) change settings: enable groups access and disable group privacy.
+# The bot can read updates via polling or a webhook. Polling is enabled by default (webhook = false) so you don't have to change anything.
+# If you want to use webhook - set it to true and add a hostname (webhook requires a valid domain).
+# there are two languages out of the box: russian (ru) and english (en). Check `locals` folder and you will figure out how to add more.
 [bot]
-debug = true # show bunch of boring info
-token = "<TELEGRAM-BOT-TOKEN>" # ask @BotFather in Telegram to obtain one
-stateTimeout = 600 # poll update period in seconds
+debug = false
+token = "" # ask @BotFather in Telegram to obtain one
+stateTimeout = 600 # in milliseconds
 webhook = false # use webhook or poll updates methods. Webhook is faster and reliable but requires a domain
-hostname = "https://url/" # hostname for bot's webhook listener. Trailing slash at the end is mandatory
+hostname = "https://url/" # trailing slash is mandatory
 listenHostname = "0.0.0.0:1338" # specify port for webhook listener
-language = "en" # en for English and ru for Russian
+language = "en"
 
-[credentials]
-admin_chat_id = "<TELEGRAM-CHAT-ID>" # chat ID for Administrator
-chat_id_by_roles = [
-    "<KITSU-SHORT-STATUS-NAME>:<TELEGRAM-CHAT-ID>", # e.g. "RETAKE:12345" where "RETALE" is a short name for status in Kitsu and "12345 is Telegram chat id
-    "<KITSU-SHORT-STATUS-NAME>:<TELEGRAM-CHAT-ID>", # e.g. "WIP:67890" where "WIP" is a short name for status in Kitsu and "67890 is another Telegram chat id
-    "<KITSU-SHORT-STATUS-NAME>:<TELEGRAM-CHAT-ID>"  # ..you got the idea.
-]
-
-[messaging]
-poll_duration = 1 # minutes
-comment_truncate_at = 128 # characters
+# Everything about notifications for updated statuses in Kitsu. Poll duration dictates how often bot should check Kitsu for updates.
+# Bot can quote comments for updated status if there are any - you can truncate them via `comment_truncate_at`
+# Silent update set to true is useful for the first run. Otherwise Bot would spam chat with a lot of statuses on exisitng Kitsu instance.
+# `Admin chat ID` is a numerical ID of Telegram chats. On first run type `/lookup` command privatly to bot - it will print an array ..
+# .. with `chat_id` field contatining the ID. Put it to `admin_chat_id` - you are now the admin.
+[notification]
+poll_duration = 5 # in minutes
+comment_truncate_at = 128 # in characters
 silent_update = false # set to true for the first run
 suppress_undefined_roles = true # dont inform Administrator for messages that were not addressed to existing chat roles
+admin_chat_id = ""  # chat ID for Administrator
+
+# This array uses pair like "kitsu status:telegram chat id". Use only short names of Kitsu statuses.
+# e.g. "retake:123456789" where "retake" is a short name for status in Kitsu and "12345 is Telegram chat id
+# e.g. "wip:987654321" where "wip" is a short name for status in Kitsu and "67890 is another Telegram chat id
+chat_id_by_roles = [
+    ":",
+    ":",
+    ":",
+    ":",
+    ":"
+]
+
+# Everything about backups attached files from Kitsu. Poll duration - how often backup should be initiated.
+# If fast delete is set to true - uploaded file to S3 will be deleted from local dir immediately.
+[backup]
+poll_duration = 360 # in minutes
+local_storage = "./tmp" # trailing slash is mandatory
+ignore = ["jpg", "jpeg", "JPG", "JPEG"]
+fast_delete = true
+
+# S3 related settings. The testing was done on Wasabi S3 only but in theory should work with any S3 storage provider.
+[backup.s3]
+access_key = ""
+secret_key = ""
+bucket_name = ""
+endpoint = "https://url/"
+region = "eu-central-1"
+s3_force_path_style = true
+root_folder_name = "KitsuBackups"

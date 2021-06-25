@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func APIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB) {
+func APIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB, conf config.Config) {
 	// API
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
@@ -26,10 +26,10 @@ func APIRoutes(app *fiber.App, bot *tgbotapi.BotAPI, db *gorm.DB) {
 
 	// Routes
 	// Kitsu
-	KitsuRoute(v1, bot, db)
+	KitsuRoute(v1, bot, db, conf)
 }
 
-func KitsuRoute(route fiber.Router, bot *tgbotapi.BotAPI, db *gorm.DB) {
+func KitsuRoute(route fiber.Router, bot *tgbotapi.BotAPI, db *gorm.DB, conf config.Config) {
 	route.Post("/kitsu", func(c *fiber.Ctx) error {
 		// Conf
 		conf := config.Read()

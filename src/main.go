@@ -1,11 +1,13 @@
 package main
 
 import (
-	basicauth "bot/src/controllers/basicauth"
-	config "bot/src/controllers/config"
-	munro "bot/src/controllers/munro"
-	routes "bot/src/controllers/routes"
-	storage "bot/src/controllers/storage"
+	"bot/src/controllers/basicauth"
+	"bot/src/controllers/config"
+	"bot/src/controllers/munro"
+	"bot/src/controllers/routes"
+	"bot/src/controllers/storage"
+	"bot/src/utils/remove"
+	"fmt"
 
 	"log"
 	"os"
@@ -14,6 +16,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -38,7 +41,8 @@ func main() {
 	}
 
 	// Migration
-	db.AutoMigrate(&storage.TaskRecord{})
+	db.AutoMigrate(&storage.Task{})
+	db.AutoMigrate(&storage.Attachment{})
 
 	/*
 		Telegram Bot
@@ -59,17 +63,57 @@ func main() {
 	// Bot updates
 	go munro.ListenBotUpdates(bot, updates, conf)
 
-	// Parse statuses
+	// Parse notifications
 	go func() {
-		for x := range time.Tick(time.Duration(conf.Messaging.PollDuration) * time.Minute) {
+		for x := range time.Tick(time.Duration(conf.Notification.PollDuration) * time.Minute) {
+			fmt.Println("START checking Task statuses at " + time.Now().String())
 			munro.ParseTaskStatuses(bot, conf, x, db)
+			fmt.Println("DONE checking Task statuses at " + time.Now().String())
+		}
+	}()
+
+	// Parse attachments
+	go func() {
+		for x := range time.Tick(time.Duration(conf.Backup.PollDuration) * time.Minute) {
+			if conf.Backup.FastDelete != true {
+				remove.RemoveContents(conf.Backup.LocalStorage + "trash/")
+				fmt.Println("DONE clearing Trash at " + time.Now().String())
+			}
+
+			fmt.Println("START checking Attachments at " + time.Now().String())
+			munro.ParseAttachments(bot, conf, x, db)
+			fmt.Println("DONE checking Attachments at " + time.Now().String())
+
 		}
 	}()
 
 	/*
 		Routing
 	*/
-	app := fiber.New()
+	// Config app
+	app := fiber.New(fiber.Config{
+		// Override default error handler
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			// Error type
+			type Error struct {
+				StatusCode int    `json:"statusCode"`
+				Error      string `json:"error"`
+			}
+			// Default 500 statuscode
+			code := fiber.StatusInternalServerError
+
+			if e, ok := err.(*fiber.Error); ok {
+				// Override status code if fiber.Error type
+				code = e.Code
+			}
+			// Set Content-Type: text/plain; charset=utf-8
+			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+			// Return statuscode with error message
+			fmt.Println(err)
+			return ctx.Status(code).JSON(Error{code, err.Error()})
+		},
+	})
 
 	// CORS
 	app.Use(cors.New(cors.Config{
@@ -79,8 +123,12 @@ func main() {
 		AllowHeaders:     conf.CORS.AllowHeaders,
 		AllowCredentials: true,
 		ExposeHeaders:    "",
-		MaxAge:           0,
+		MaxAge:           100,
 	}))
+
+	// Middlewares
+	// Recover middleware
+	app.Use(recover.New())
 
 	// API routes
 	// give response when at /api/v1
@@ -91,7 +139,7 @@ func main() {
 		})
 	})
 
-	routes.APIRoutes(app, bot, db)
+	routes.APIRoutes(app, bot, db, conf)
 
 	app.Listen(conf.Kitsu.ListenHostname)
 }

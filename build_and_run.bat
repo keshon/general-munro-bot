@@ -1,1 +1,0 @@
-go build -o bot.exe src/main.go && bot.exe

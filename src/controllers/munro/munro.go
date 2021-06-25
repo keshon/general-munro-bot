@@ -4,11 +4,14 @@ import (
 	"bot/src/controllers/config"
 	"bot/src/controllers/kitsu"
 	"bot/src/controllers/storage"
+	"bot/src/controllers/wasabi"
 	"bot/src/utils/truncate"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -89,8 +92,8 @@ func ListenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, con
 			var chatID int64
 
 			// Check if admin chat is defined
-			if _, err := strconv.Atoi(conf.Credentials.AdminChatID); err == nil {
-				chatID, _ = strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
+			if _, err := strconv.Atoi(conf.Notification.AdminChatID); err == nil {
+				chatID, _ = strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
 			} else {
 				chatID = int64(update.Message.From.ID)
 			}
@@ -133,12 +136,10 @@ func ListenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, con
 
 func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
 	// Get all Tasks
-	allTasks := kitsu.GetTasks()
-	if len(allTasks.Each) > 0 {
-		for _, task := range allTasks.Each {
-
-			ParseTaskStatus(bot, conf, db, task)
-
+	array := kitsu.GetTasks()
+	if len(array.Each) > 0 {
+		for _, elem := range array.Each {
+			ParseTaskStatus(bot, conf, db, elem)
 		}
 	}
 }
@@ -209,15 +210,15 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 	var messageTemplate = ""
 	//messageTemplate += "<pre>" + debug + "</pre>\n"
 
-	result := storage.FindRecord(db, task.ID)
+	result := storage.FindTask(db, task.ID)
 	if len(result.TaskID) > 0 {
 		// check if status is different or last comment date don't match
 		if result.TaskStatus != currentTaskStatus.ShortName || result.TaskUpdatedAt != task.UpdatedAt {
 			// update
-			storage.UpdateRecord(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
+			storage.UpdateTask(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
 
 			// say
-			if conf.Messaging.SilentUpdate != true {
+			if conf.Notification.SilentUpdate != true {
 
 				// Same status or not
 				if result.TaskStatus != currentTaskStatus.ShortName {
@@ -248,12 +249,12 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 
 	} else {
 		// create
-		storage.CreateRecord(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
+		storage.CreateTask(db, task.ID, task.UpdatedAt, currentTaskStatus.ShortName, commentID, commentUpdatedAt)
 		// say
-		if conf.Messaging.SilentUpdate != true {
+		if conf.Notification.SilentUpdate != true {
 
 			// Compose message
-			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " <i>" + entityName + "</i>"
 
 			if commentMessage != "" {
 				messageTemplate += commentMessage
@@ -267,7 +268,7 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus string) {
 
 	var messageSent = false
-	for _, elem := range conf.Credentials.ChatIDByRoles {
+	for _, elem := range conf.Notification.ChatIDByRoles {
 		role := strings.ToLower(strings.Split(elem, ":")[0]) // extract role name and make it lowercase
 		currentTaskStatusName := strings.ToLower(taskStatus)
 
@@ -278,25 +279,27 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 			chatIDs := strings.Split(elem, ":")[1]
 			chatID, _ = strconv.ParseInt(chatIDs, 10, 64)
 
-			// send status (not working :/)
-			status := tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping)
-			bot.Send(status)
+			if conf.Notification.SilentUpdate != true {
+				// send status (not working :/)
+				status := tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping)
+				bot.Send(status)
+
+				// Calling Sleep method
+				time.Sleep(5 * time.Second)
+			}
 
 			// send message
 			msg := tgbotapi.NewMessage(chatID, message)
 			msg.ParseMode = "html"
 			bot.Send(msg)
 
-			// Calling Sleep method
-			time.Sleep(5 * time.Second)
-
 			messageSent = true
 		}
 	}
 
 	// Send message to Admin if no role matching was done successfuly and supress is disabled
-	if messageSent == false && conf.Messaging.SuppressUndefinedRoles != true {
-		chatID, _ := strconv.ParseInt(conf.Credentials.AdminChatID, 10, 64)
+	if messageSent == false && conf.Notification.SuppressUndefinedRoles != true {
+		chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
 
 		bot.Send(tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping))
 		message = i18n.Tr(conf.Bot.Language, "unknown-status") + "\n" + message
@@ -305,4 +308,129 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 		bot.Send(msg)
 	}
 
+}
+
+func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
+	// Get all Attachments
+	array := kitsu.GetAttachments()
+	if len(array.Each) > 0 {
+		var count int
+		for _, elem := range array.Each {
+
+			resp := ParseAttachment(bot, conf, db, elem)
+			if resp == true {
+				count++
+			}
+		}
+
+		if count > 0 {
+			chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
+			bot.Send(tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping))
+			strCount := strconv.Itoa(count)
+			message := i18n.Tr(conf.Bot.Language, "backup-finished") + strCount
+			msg := tgbotapi.NewMessage(chatID, message)
+			msg.ParseMode = "html"
+			bot.Send(msg)
+		}
+	}
+}
+
+func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, attachment kitsu.Attachment) bool {
+	fmt.Println("Proccesing " + attachment.Name)
+
+	if attachment.ID == "" {
+		return false
+	}
+
+	for _, elem := range conf.Backup.Ignore {
+		if attachment.Extension == elem {
+			fmt.Println("Skipping ignored extension: " + elem)
+			return false
+		}
+	}
+
+	localPath := conf.Backup.LocalStorage + attachment.ID
+
+	s3Path := ""
+	if attachment.Comment.ObjectID != "" {
+
+		task := kitsu.GetTask(attachment.Comment.ObjectID)
+
+		// Get entity name (Top Task)
+		entity := kitsu.GetEntity(task.EntityID)
+		entityName := entity.Name
+
+		// Get task type (Sub Task)
+		taskType := kitsu.GetTaskType(task.TaskTypeID)
+		taskTypeName := ""
+		if taskType.Name != "" {
+			taskTypeName = taskType.Name + "/"
+		}
+		project := kitsu.GetProject(task.ProjectID)
+		//projectStatus := kitsu.GetProjectStatus(project.ProjectStatusID)
+
+		s3Path = conf.Backup.S3.RootFolderName + "/" + project.Name + "/" + entityName + "/" + taskTypeName + attachment.Name
+	} else {
+		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachment.Name
+	}
+
+	result := storage.FindAttachment(db, attachment.ID)
+	if len(result.AttachmentID) > 0 {
+		// check if status is different or last comment date don't match
+		if result.AttachmentStatus != "done" || result.AttachmentUpdatedAt != attachment.UpdatedAt {
+			// update
+			storage.UpdateAttachment(db, attachment.ID, attachment.UpdatedAt, "new")
+			kitsu.DownloadAttachment(localPath, attachment.ID, attachment.Name, conf)
+
+			// Read file from local dir
+			content, err := ioutil.ReadFile(localPath + "/" + attachment.Name)
+			if err != nil {
+				panic(err)
+			}
+
+			// Upload file to S3 storage
+			wasabi.UploadFile(s3Path, string(content), conf)
+			storage.UpdateAttachment(db, attachment.ID, attachment.UpdatedAt, "done")
+		} else {
+			fmt.Println("Skipping existing attachment: " + attachment.Name)
+			return false
+		}
+
+	} else {
+		// create
+		// Download file from Kitsu
+		storage.CreateAttachment(db, attachment.ID, attachment.UpdatedAt, "new")
+		kitsu.DownloadAttachment(localPath, attachment.ID, attachment.Name, conf)
+
+		// Read file from local dir
+		content, err := ioutil.ReadFile(localPath + "/" + attachment.Name)
+		if err != nil {
+			panic(err)
+		}
+
+		// Upload file to S3 storage
+		wasabi.UploadFile(s3Path, string(content), conf)
+		storage.UpdateAttachment(db, attachment.ID, attachment.UpdatedAt, "done")
+	}
+
+	// Cleaning
+	if conf.Backup.FastDelete != true {
+		trashPath := conf.Backup.LocalStorage + "trash/" + attachment.ID
+		doneAttachment := storage.FindAttachment(db, attachment.ID)
+		if doneAttachment.AttachmentStatus == "done" {
+			if _, err := os.Stat(localPath); !os.IsNotExist(err) {
+				err := os.Rename(localPath, trashPath) // rename directory
+				if err != nil {
+					panic(err)
+				}
+			}
+		}
+	} else {
+		os.RemoveAll(localPath)
+		fmt.Println("DONE deleting at" + time.Now().String())
+	}
+
+	fmt.Println("")
+
+	return true
 }

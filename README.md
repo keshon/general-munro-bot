@@ -1,81 +1,41 @@
-# General Munro — Telegram notification Bot for Kitsu
-![Munro Bot in action](https://github.com/zorg-industries-limited/general-munro-bot/blob/main/misc/munro_in_action.gif)
-## About
-**General Munro** is a Telegram bot that publish notifications from [Kitsu](https://www.cg-wire.com/en/kitsu.html) via automatic polling.
-
 ### ⚠ Schrödinger's warning
-This code is in Superposition and may work or may not work at all.
+The code in this repository is in Superposition and may work or may not work at all.
 
-## Source compilation
-The bot written in Go so it is necessary to compile the code. Assuming Go is installed in the system use supplied scripts `build.bat` or `bash build.sh` depending your OS architecture.
+# General Munro — Assets backup and Telegram notification for CG Wire Kitsu task tracker
 
-The binary file will be `bot.exe` or `bot` respectively.
+## About
+**General Munro** is a web application that integrates with [Kitsu](https://www.cg-wire.com/en/kitsu.html) to do the following:
+- Automatic notifications via Telegram messenger for new comments in Kitsu tasks
+- Automatic backups to S3 storage of all attached files to comments in Kitsu task
 
-## Docker deploy
-You can deploy the bot using Docker. It is necessary **Docker** and **docker-compose** to be installed on target machine with running [Traefik](https://github.com/zorg-industries-limited/ruby-rhod-fantastic-dockers) reverse proxy.
+## Quick start
+Download latest release (windows only), update conf.toml and run.
 
-In order to build and deploy container go to `/deploy` folder, update bot domain name for `HOST` variable and `KITSU_HOST` for your Kitsu instance in `.env` file and execute `bash run.sh` script that will git clone sources, compile them, make a docker image and run a container over it.
+## Long start
+### Source compilation
+Assuming Go is installed in the system compile the code (Windows example):
+`go build -ldflags "-s -w" -o app.exe src/main.go`.
 
+The binary file will be `app.exe`.
 
-## Configuration
-There are certain actions had to be made prior bot compilation and deployment.
-
-### 1. @BotFather
-Contact @BotFather in Telegram and:
+### Configuration
+### Step 1. Create a Telegram bot via @BotFather
+Contact Telegram @BotFather and:
  - get a token for the bot.
  - enable groups access.
  - disable group privacy.
  
-### 2. Config file conf.toml
-Bot relies on a config file that should be properly set up. Rename `empty.conf.toml` to `conf.toml` and edit it:
-- store bot token to `token` variable inside `[bot]` section.
-- update `[kitsu]` section accordingly. Note that login credentials must be set for Studio Manager.
-- update `[credentials]` sections.
+### Step 2. Update conf.toml file
+Rename `empty.conf.toml` to `conf.toml` and update each section accordingly. Each section contains verbose comments but if you stuck feel free to open issue ticket.
 
-### Update Credentials section
-#### Get chat ID for each Telegram contact bot should write to. 
-It can be private chat or a group.
+#### Step 3. Last touches
+##### Make Telegram mentions via "@"
+Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someUsername` - this allows bot to mention team members if the bot sends messages to the group.
 
-Before going any further you need to become an administrator. To do so let's get our own `chat id` by writing to bot privately with a command `/lookup` - the bot will print Telegram response object where we need to find `id` key inside `chat`: 
-```
-"message": {
-    ...
-    "chat": {
-        "id": 285016301,
-        ...
-    }
-    ...
-}
-```
-Save that ID to `admin_chat_id` variable inside `[credentials]` section and restart the bot. You are now admin.
+##### Multlang support
+Use conf.toml file to select between Russian and English. You can create your own translation inside `locales` folder if nessesary.
 
-From now on you can repeat the process of getting chat ids for groups by adding bot to the group and use the same `lookup` command with mentioning bot name this time for example:
-`@GeneralMunro lookup` 
+### Deployement
+You can deploy the app using Docker. To achieve this with suplied deloy scripts it is necessary **Docker**, **docker-compose** and [Traefik](https://github.com/zorg-industries-limited/ruby-rhod-fantastic-dockers) to be installed on target machine.
 
-The bot will send you another Telegram response object to your private chat (because you are admin already). Again you need to find chat id and save it to `chat_id_by_roles` array to the **right** side of `:` sign. The left side is for names of Tasks statuses in Kitsu.
-
-#### Get short names of [task statuses](https://kitsu.cg-wire.com/customization/#modify-an-existing-task-status) in Kitsu.
-Just open Kitsu settings as a Studio Manager and look for `short names` of each Task status.
-Write them to the **left** sie of `:` sign.
-
-At the end final settings for `char_id_by_roles` might look like this:
-```
-chat_id_by_roles = [
-    "RETAKE:12345",
-    "WFA:67890",
-    "DONE:24680"
-]
-```
-
-.. where each numerical row represents a group or a private chat in Telegram and a Task status it belongs.
-
-### Last touch
-Use Kitsu `Phone` field in User profile to store Telegram usernames like `@someUsername` - this would allow bot to mention team members if the bot sends messages to the group.
-
-### Multlang support
-Use conf.toml file to select between Russian and English. You can create your own translation inside `locales` folder.
-
-### TODO
-- truncate long comments
-- fix logical error where same statuses are ignored (add last time comment column)
-- add silent db update (for the first run)
+In order to build and deploy container in one hit go to `/deploy` folder, update app domain name for `HOST` variable and `KITSU_HOST` for your Kitsu instance in `.env` file - then execute `bash run.sh`. The script will git clone sources, compile them, make a docker image and run a container over it.

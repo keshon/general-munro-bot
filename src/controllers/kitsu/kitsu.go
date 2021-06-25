@@ -5,9 +5,8 @@ import (
 	"bot/src/controllers/config"
 	"bot/src/utils/debug"
 	"encoding/json"
-	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 )
@@ -18,20 +17,8 @@ type Task struct {
 	CreatedAt       string      `json:"created_at,omitempty"`
 	UpdatedAt       string      `json:"updated_at,omitempty"`
 	Name            string      `json:"name,omitempty"`
-	Description     interface{} `json:"description,omitempty"`
-	Priority        int         `json:"priority,omitempty"`
-	Duration        int         `json:"duration,omitempty"`
-	Estimation      int         `json:"estimation,omitempty"`
-	CompletionRate  int         `json:"completion_rate,omitempty"`
-	RetakeCount     int         `json:"retake_count,omitempty"`
-	SortOrder       int         `json:"sort_order,omitempty"`
-	StartDate       interface{} `json:"start_date,omitempty"`
-	EndDate         interface{} `json:"end_date,omitempty"`
-	DueDate         interface{} `json:"due_date,omitempty"`
-	RealStartDate   interface{} `json:"real_start_date,omitempty"`
 	LastCommentDate string      `json:"last_comment_date,omitempty"`
 	Data            interface{} `json:"data,omitempty"`
-	ShotgunID       interface{} `json:"shotgun_id,omitempty"`
 	ProjectID       string      `json:"project_id,omitempty"`
 	TaskTypeID      string      `json:"task_type_id,omitempty"`
 	TaskStatusID    string      `json:"task_status_id,omitempty"`
@@ -123,6 +110,53 @@ type Comments struct {
 	Each []Comment
 }
 
+type Attachment struct {
+	ID        string `json:"id,omitempty"`
+	CreatedAt string `json:"created_at,omitempty"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Extension string `json:"extension,omitempty"`
+	Mimetype  string `json:"mimetype,omitempty"`
+	CommentID string `json:"comment_id,omitempty"`
+	Comment   struct {
+		ObjectID   string `json:"object_id,omitempty"`
+		ObjectType string `json:"object_type,omitempty"`
+	}
+}
+
+type Attachments struct {
+	Each []Attachment
+}
+
+type TaskType struct {
+	ID        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	ShortName string `json:"short_name,omitempty"`
+}
+
+type TaskTypes struct {
+	Each []TaskType
+}
+
+type Project struct {
+	ID              string `json:"id,omitempty"`
+	Name            string `json:"name,omitempty"`
+	ProjectStatusID string `json:"project_status_id,omitempty"`
+}
+
+type Projects struct {
+	Each []Project
+}
+
+type ProjectStatus struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+type ProjectStatuses struct {
+	Each []ProjectStatus
+}
+
 func GetComment(objectID string) Comments {
 	// Create client
 	client := &http.Client{}
@@ -130,9 +164,9 @@ func GetComment(objectID string) Comments {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/comments?object_id="+objectID, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
-	fmt.Println(os.Getenv("JWTToken"))
+
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
@@ -140,14 +174,14 @@ func GetComment(objectID string) Comments {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -159,7 +193,7 @@ func GetComment(objectID string) Comments {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
@@ -172,9 +206,9 @@ func GetTasks() Tasks {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/tasks/", nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
-	//fmt.Println(os.Getenv("JWTToken"))
+
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
@@ -182,14 +216,14 @@ func GetTasks() Tasks {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -201,7 +235,7 @@ func GetTasks() Tasks {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
@@ -213,9 +247,9 @@ func GetTask(taskID string) Task {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/tasks/"+taskID, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
-	//fmt.Println(os.Getenv("JWTToken"))
+
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
@@ -223,14 +257,14 @@ func GetTask(taskID string) Task {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -242,7 +276,7 @@ func GetTask(taskID string) Task {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
@@ -255,7 +289,7 @@ func GetPerson(personID string) Person {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/persons/"+personID, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Set content type
@@ -265,14 +299,14 @@ func GetPerson(personID string) Person {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	//fmt.Println(string(respBody))
@@ -286,7 +320,7 @@ func GetPerson(personID string) Person {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
@@ -299,7 +333,7 @@ func GetEntities(EntityID string) Entities {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/entities/", nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Set content type
@@ -309,14 +343,14 @@ func GetEntities(EntityID string) Entities {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -328,11 +362,12 @@ func GetEntities(EntityID string) Entities {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
 }
+
 func GetEntity(EntityID string) Entity {
 	// Create client
 	client := &http.Client{}
@@ -340,7 +375,7 @@ func GetEntity(EntityID string) Entity {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/entities/"+EntityID, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Set content type
@@ -350,14 +385,14 @@ func GetEntity(EntityID string) Entity {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -369,7 +404,7 @@ func GetEntity(EntityID string) Entity {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	return typBody
@@ -382,7 +417,7 @@ func GetTaskStatus(TaskStatusID string) TaskStatus {
 	// Create request
 	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/task-status/"+TaskStatusID, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Set content type
@@ -392,14 +427,14 @@ func GetTaskStatus(TaskStatusID string) TaskStatus {
 	// Fetch request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	// Display results
@@ -411,7 +446,269 @@ func GetTaskStatus(TaskStatusID string) TaskStatus {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
+	}
+
+	return typBody
+}
+
+func GetAttachments() Attachments {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/attachment-files/", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody Attachments
+
+	err = json.Unmarshal([]byte(strBody), &typBody.Each)
+	if err != nil {
+		panic(err)
+	}
+
+	return typBody
+}
+
+func GetAttachment(AttachmentID string) Attachment {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/attachment-files/"+AttachmentID, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody Attachment
+
+	err = json.Unmarshal([]byte(strBody), &typBody)
+	if err != nil {
+		panic(err)
+	}
+
+	return typBody
+}
+
+func DownloadAttachment(localPath, id, filename string, conf config.Config) int64 {
+	// Create client
+	client := &http.Client{}
+
+	// Create dir
+	if _, err := os.Stat(localPath); os.IsNotExist(err) {
+		err := os.Mkdir(localPath, os.ModeDir)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Create the file
+	out, err := os.Create(localPath + "/" + filename)
+	if err != nil {
+		panic(err)
+	}
+	defer out.Close()
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/attachment-files/"+id+"/file/"+filename, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		//return fmt.Errorf("bad status: %s", resp.Status)
+		//panic("bad status:" + resp.Status)
+		return 0
+	}
+
+	// Writer the body to file
+	size, err := io.Copy(out, resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return size
+}
+
+func GetTaskType(taskID string) TaskType {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/task-types/"+taskID, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody TaskType
+
+	err = json.Unmarshal([]byte(strBody), &typBody)
+	if err != nil {
+		panic(err)
+	}
+
+	return typBody
+}
+
+func GetProject(projectID string) Project {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/projects/"+projectID, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody Project
+
+	err = json.Unmarshal([]byte(strBody), &typBody)
+	if err != nil {
+		panic(err)
+	}
+
+	return typBody
+}
+
+func GetProjectStatus(projectStatusID string) ProjectStatus {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/project-status/"+projectStatusID, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody ProjectStatus
+
+	err = json.Unmarshal([]byte(strBody), &typBody)
+	if err != nil {
+		panic(err)
 	}
 
 	return typBody
