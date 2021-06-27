@@ -542,7 +542,7 @@ func DownloadAttachment(localPath, id, filename string, conf config.Config) int6
 
 	// Create dir
 	if _, err := os.Stat(localPath); os.IsNotExist(err) {
-		err := os.Mkdir(localPath, os.ModeDir)
+		err := os.Mkdir(localPath, 0755)
 		if err != nil {
 			panic(err)
 		}
