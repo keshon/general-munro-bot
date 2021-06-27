@@ -5,8 +5,8 @@ import (
 	"bot/src/controllers/kitsu"
 	"bot/src/controllers/storage"
 	"bot/src/controllers/wasabi"
+	"bot/src/utils/sanitize"
 	"bot/src/utils/truncate"
-	"bot/src/utils/utf8convert"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -361,21 +361,21 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		entity := kitsu.GetEntity(task.EntityID)
 		entityName := ""
 		if entity.Name != "" {
-			entityName = utf8convert.ConvrtToUTF8(entity.Name, "utf-8") + "/"
+			entityName = sanitize.Sanitize(entity.Name) + "/"
 		}
 
 		// Get task type (Sub Task)
 		taskType := kitsu.GetTaskType(task.TaskTypeID)
 		taskTypeName := ""
 		if taskType.Name != "" {
-			taskTypeName = utf8convert.ConvrtToUTF8(taskType.Name, "utf-8") + "/"
+			taskTypeName = sanitize.Sanitize(taskType.Name) + "/"
 		}
 
 		// Get Project
 		project := kitsu.GetProject(task.ProjectID)
 		projectName := ""
 		if project.Name != "" {
-			projectName = utf8convert.ConvrtToUTF8(project.Name, "utf-8") + "/"
+			projectName = sanitize.Sanitize(project.Name) + "/"
 		}
 		//projectStatus := kitsu.GetProjectStatus(project.ProjectStatusID)
 

@@ -22,7 +22,6 @@ import (
 )
 
 func main() {
-
 	/*
 		Init
 	*/
