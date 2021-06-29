@@ -30,6 +30,8 @@ type Config struct {
 		Language       string
 	}
 	Notification struct {
+		IsEnabled              bool
+		Threads                int
 		PollDuration           int
 		CommentTruncateAt      int
 		SilentUpdate           bool
@@ -38,11 +40,12 @@ type Config struct {
 		ChatIDByRoles          []string
 	}
 	Backup struct {
-		PollDuration int
-		LocalStorage string
-		Ignore       []string
-		FastDelete   bool
-		S3           struct {
+		IsEnabled       bool
+		Threads         int
+		PollDuration    int
+		LocalStorage    string
+		IgnoreExtension []string
+		S3              struct {
 			AccessKey        string
 			SecretKey        string
 			BucketName       string

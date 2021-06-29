@@ -63,28 +63,28 @@ func main() {
 	go munro.ListenBotUpdates(bot, updates, conf)
 
 	// Parse notifications
-	go func() {
-		for x := range time.Tick(time.Duration(conf.Notification.PollDuration) * time.Minute) {
-			fmt.Println("START checking Task statuses at " + time.Now().String())
-			munro.ParseTaskStatuses(bot, conf, x, db)
-			fmt.Println("DONE checking Task statuses at " + time.Now().String())
-		}
-	}()
+	if conf.Notification.IsEnabled == true {
+		go func() {
+			for x := range time.Tick(time.Duration(conf.Notification.PollDuration) * time.Minute) {
+				fmt.Println("START checking Task statuses at " + time.Now().String())
+				munro.ParseTaskStatuses(bot, conf, x, db)
+				fmt.Println("DONE checking Task statuses at " + time.Now().String())
+			}
+		}()
+	}
 
 	// Parse attachments
-	go func() {
-		for x := range time.Tick(time.Duration(conf.Backup.PollDuration) * time.Minute) {
-			if conf.Backup.FastDelete != true {
-				remove.RemoveContents(conf.Backup.LocalStorage + "trash/")
-				fmt.Println("DONE clearing Trash at " + time.Now().String())
+	if conf.Backup.IsEnabled == true {
+		go func() {
+			for x := range time.Tick(time.Duration(conf.Backup.PollDuration) * time.Minute) {
+				remove.RemoveContents(conf.Backup.LocalStorage)
+				fmt.Println("START checking Attachments at " + time.Now().String())
+				munro.ParseAttachments(bot, conf, x, db)
+				fmt.Println("DONE checking Attachments at " + time.Now().String())
+
 			}
-
-			fmt.Println("START checking Attachments at " + time.Now().String())
-			munro.ParseAttachments(bot, conf, x, db)
-			fmt.Println("DONE checking Attachments at " + time.Now().String())
-
-		}
-	}()
+		}()
+	}
 
 	/*
 		Routing

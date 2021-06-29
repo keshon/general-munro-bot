@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hokaccha/go-prettyjson"
@@ -138,10 +139,17 @@ func ListenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, con
 func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
 	// Get all Tasks
 	array := kitsu.GetTasks()
-	if len(array.Each) > 0 {
+	sliceLength := len(array.Each)
+	if sliceLength > 0 {
+		var wg sync.WaitGroup
+		wg.Add(sliceLength)
 		for _, elem := range array.Each {
-			ParseTaskStatus(bot, conf, db, elem)
+			go func(elem kitsu.Task) {
+				defer wg.Done()
+				ParseTaskStatus(bot, conf, db, elem)
+			}(elem)
 		}
+		wg.Wait()
 	}
 }
 
@@ -314,15 +322,25 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
 	// Get all Attachments
 	array := kitsu.GetAttachments()
-	if len(array.Each) > 0 {
-		var count int
-		for _, elem := range array.Each {
+	sliceLength := len(array.Each)
 
-			resp := ParseAttachment(bot, conf, db, elem)
-			if resp == true {
-				count++
-			}
+	if sliceLength > 0 {
+		var count int
+
+		var wg sync.WaitGroup
+		wg.Add(sliceLength)
+
+		for _, elem := range array.Each {
+			go func(elem kitsu.Attachment) {
+				defer wg.Done()
+				resp := ParseAttachment(bot, conf, db, elem)
+				if resp == true {
+					count++
+				}
+			}(elem)
 		}
+
+		wg.Wait()
 
 		if count > 0 {
 			chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
@@ -343,7 +361,7 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		return false
 	}
 
-	for _, elem := range conf.Backup.Ignore {
+	for _, elem := range conf.Backup.IgnoreExtension {
 		if attachment.Extension == elem {
 			fmt.Println("Skipping ignored extension: " + elem)
 			return false
@@ -424,21 +442,8 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 	}
 
 	// Cleaning
-	if conf.Backup.FastDelete != true {
-		trashPath := conf.Backup.LocalStorage + "trash/" + attachment.ID
-		doneAttachment := storage.FindAttachment(db, attachment.ID)
-		if doneAttachment.AttachmentStatus == "done" {
-			if _, err := os.Stat(localPath); !os.IsNotExist(err) {
-				err := os.Rename(localPath, trashPath) // rename directory
-				if err != nil {
-					panic(err)
-				}
-			}
-		}
-	} else {
-		os.RemoveAll(localPath)
-		fmt.Println("DONE deleting at" + time.Now().String())
-	}
+	os.RemoveAll(localPath)
+	fmt.Println("DONE deleting at " + time.Now().String())
 
 	fmt.Println("")
 
