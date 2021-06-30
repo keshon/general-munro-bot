@@ -37,6 +37,8 @@ language = "en"
 # `Admin chat ID` is a numerical ID of Telegram chats. On first run type `/lookup` command privatly to bot - it will print an array ..
 # .. with `chat_id` field contatining the ID. Put it to `admin_chat_id` - you are now the admin.
 [notification]
+is_enabled = true
+threads = 64 # set 0 to go synchronous way (the slowest)
 poll_duration = 5 # in minutes
 comment_truncate_at = 128 # in characters
 silent_update = false # set to true for the first run
@@ -54,9 +56,16 @@ chat_id_by_roles = [
     ":"
 ]
 
+# list fo Kitsu statuses with 'is done' set to yes. Needed to reduce app overhead.
+done_statuses = [
+    "done"
+]
+
 # Everything about backups attached files from Kitsu. Poll duration - how often backup should be initiated.
 # If fast delete is set to true - uploaded file to S3 will be deleted from local dir immediately.
 [backup]
+is_enabled = true
+threads = 16 # set 0 to go synchronous way (the slowest)
 poll_duration = 360 # in minutes
 local_storage = "./tmp/" # trailing slash is mandatory
 ignore = ["jpg", "jpeg", "JPG", "JPEG"]

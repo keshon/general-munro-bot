@@ -193,8 +193,8 @@ func GetComment(objectID string) Comments {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		return Comments{}
-		//panic(err)
+		//return Comments{}
+		panic(err)
 	}
 
 	return typBody
@@ -236,8 +236,8 @@ func GetTasks() Tasks {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		return Tasks{}
-		//panic(err)
+		//return Tasks{}
+		panic(err)
 	}
 
 	return typBody
@@ -278,8 +278,8 @@ func GetTask(taskID string) Task {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return Task{}
-		//panic(err)
+		//return Task{}
+		panic(err)
 	}
 
 	return typBody
@@ -323,8 +323,8 @@ func GetPerson(personID string) Person {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return Person{}
-		//panic(err)
+		//return Person{}
+		panic(err)
 	}
 
 	return typBody
@@ -366,8 +366,8 @@ func GetEntities(EntityID string) Entities {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		return Entities{}
-		//panic(err)
+		//return Entities{}
+		panic(err)
 	}
 
 	return typBody
@@ -409,8 +409,8 @@ func GetEntity(EntityID string) Entity {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return Entity{}
-		//panic(err)
+		//return Entity{}
+		panic(err)
 	}
 
 	return typBody
@@ -452,8 +452,8 @@ func GetTaskStatus(TaskStatusID string) TaskStatus {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return TaskStatus{}
-		//panic(err)
+		//return TaskStatus{}
+		panic(err)
 	}
 
 	return typBody
@@ -495,8 +495,8 @@ func GetAttachments() Attachments {
 
 	err = json.Unmarshal([]byte(strBody), &typBody.Each)
 	if err != nil {
-		return Attachments{}
-		//panic(err)
+		//return Attachments{}
+		panic(err)
 	}
 
 	return typBody
@@ -538,8 +538,8 @@ func GetAttachment(AttachmentID string) Attachment {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return Attachment{}
-		//panic(err)
+		//return Attachment{}
+		panic(err)
 	}
 
 	return typBody
@@ -633,8 +633,8 @@ func GetTaskType(taskID string) TaskType {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return TaskType{}
-		//panic(err)
+		//return TaskType{}
+		panic(err)
 	}
 
 	return typBody
@@ -676,8 +676,8 @@ func GetProject(projectID string) Project {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return Project{}
-		//panic(err)
+		//return Project{}
+		panic(err)
 	}
 
 	return typBody
@@ -719,8 +719,8 @@ func GetProjectStatus(projectStatusID string) ProjectStatus {
 
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
-		return ProjectStatus{}
-		//panic(err)
+		//return ProjectStatus{}
+		panic(err)
 	}
 
 	return typBody

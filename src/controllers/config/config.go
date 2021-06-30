@@ -38,6 +38,7 @@ type Config struct {
 		SuppressUndefinedRoles bool
 		AdminChatID            string
 		ChatIDByRoles          []string
+		DoneStatuses           []string
 	}
 	Backup struct {
 		IsEnabled       bool

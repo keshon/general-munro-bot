@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hokaccha/go-prettyjson"
@@ -139,23 +138,43 @@ func ListenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, con
 func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
 	// Get all Tasks
 	array := kitsu.GetTasks()
-	sliceLength := len(array.Each)
-	if sliceLength > 0 {
-		var wg sync.WaitGroup
-		wg.Add(sliceLength)
+
+	// Concurent threads from conf
+	threads := conf.Notification.Threads
+	if threads < 1 {
+		threads = 1
+	}
+
+	if len(array.Each) > 0 {
+
+		// sem is a channel that will allow up to 10 concurrent operations.
+		var sem = make(chan int, threads)
+
 		for _, elem := range array.Each {
-			go func(elem kitsu.Task) {
-				defer wg.Done()
+			sem <- 1
+			go func() {
+
 				ParseTaskStatus(bot, conf, db, elem)
-			}(elem)
+				<-sem
+			}()
 		}
-		wg.Wait()
 	}
 }
 
 func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task kitsu.Task) {
+	// Check DB first
+	result := storage.FindTask(db, task.ID)
 
-	// Get human readbale status
+	// Ignore DONE unchanged tasks
+	if len(result.TaskID) > 0 {
+		for _, elem := range conf.Notification.DoneStatuses {
+			if result.TaskStatus == elem && result.TaskUpdatedAt == task.UpdatedAt {
+				return
+			}
+		}
+	}
+
+	// Get human readable status
 	currentTaskStatus := kitsu.GetTaskStatus(task.TaskStatusID)
 
 	// Get entity name (Top Task)
@@ -164,7 +183,6 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 
 	// Get assingee for the Task and his phone data (we store Telegram nicknames there)
 	currentDetailedTask := kitsu.GetTask(task.ID)
-
 	var assigneePhone = ""
 	if len(currentDetailedTask.Assignees) > 0 {
 		for _, elem := range currentDetailedTask.Assignees {
@@ -219,7 +237,6 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 	var messageTemplate = ""
 	//messageTemplate += "<pre>" + debug + "</pre>\n"
 
-	result := storage.FindTask(db, task.ID)
 	if len(result.TaskID) > 0 {
 		// check if status is different or last comment date don't match
 		if result.TaskStatus != currentTaskStatus.ShortName || result.TaskUpdatedAt != task.UpdatedAt {
@@ -231,9 +248,9 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 
 				// Same status or not
 				if result.TaskStatus != currentTaskStatus.ShortName {
-					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + strings.ToLower(result.TaskStatus) + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + strings.ToLower(result.TaskStatus) + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
 				} else {
-					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + entityName
+					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
 				}
 
 				if commentMessage != "" {
@@ -254,6 +271,8 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 
 				sendMessage(bot, conf, messageTemplate, currentTaskStatus.ShortName)
 			}
+		} else {
+			return
 		}
 
 	} else {
@@ -263,7 +282,7 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 		if conf.Notification.SilentUpdate != true {
 
 			// Compose message
-			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " <i>" + entityName + "</i>"
+			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
 
 			if commentMessage != "" {
 				messageTemplate += commentMessage
@@ -322,25 +341,30 @@ func sendMessage(bot *tgbotapi.BotAPI, conf config.Config, message, taskStatus s
 func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db *gorm.DB) {
 	// Get all Attachments
 	array := kitsu.GetAttachments()
-	sliceLength := len(array.Each)
 
-	if sliceLength > 0 {
+	// Concurent threads from conf
+	threads := conf.Backup.Threads
+	if threads < 1 {
+		threads = 1
+	}
+
+	if len(array.Each) > 0 {
 		var count int
 
-		var wg sync.WaitGroup
-		wg.Add(sliceLength)
+		// sem is a channel that will allow up to 10 concurrent operations.
+		var sem = make(chan int, threads)
 
 		for _, elem := range array.Each {
-			go func(elem kitsu.Attachment) {
-				defer wg.Done()
+			sem <- 1
+			go func() {
+
 				resp := ParseAttachment(bot, conf, db, elem)
 				if resp == true {
 					count++
 				}
-			}(elem)
+				<-sem
+			}()
 		}
-
-		wg.Wait()
 
 		if count > 0 {
 			chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
@@ -357,13 +381,24 @@ func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db 
 func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, attachment kitsu.Attachment) bool {
 	fmt.Println("Proccesing " + attachment.Name)
 
+	result := storage.FindAttachment(db, attachment.ID)
+
+	// Ignore attachents with missing IDs
 	if attachment.ID == "" {
 		return false
 	}
 
+	// Ignore attachments with extenstions from ignore list
 	for _, elem := range conf.Backup.IgnoreExtension {
 		if attachment.Extension == elem {
 			fmt.Println("Skipping ignored extension: " + elem)
+			return false
+		}
+	}
+
+	// Ignore DONE unchanged attachments
+	if len(result.AttachmentID) > 0 {
+		if result.AttachmentStatus == "done" && result.AttachmentUpdatedAt == attachment.UpdatedAt {
 			return false
 		}
 	}
@@ -402,7 +437,6 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachment.Name
 	}
 
-	result := storage.FindAttachment(db, attachment.ID)
 	if len(result.AttachmentID) > 0 {
 		// check if status is different or last comment date don't match
 		if result.AttachmentStatus != "done" || result.AttachmentUpdatedAt != attachment.UpdatedAt {
