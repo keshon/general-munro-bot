@@ -1,5 +1,5 @@
 ### ⚠ Schrödinger's warning
-The code in this repository is in Superposition and may work or may not work at all.
+Code in this repository is in Superposition and may work or may not work at all.
 
 # General Munro — Assets backup and Telegram notification for CG Wire Kitsu task tracker
 
