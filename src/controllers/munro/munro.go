@@ -184,7 +184,7 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 	// Get assingee for the Task and his phone data (we store Telegram nicknames there)
 	currentDetailedTask := kitsu.GetTask(task.ID)
 	var assigneePhone = ""
-	if len(currentDetailedTask.Assignees) > 0 {
+	if len(currentDetailedTask.Assignees) > 0 && conf.Notification.NoMentions != true {
 		for _, elem := range currentDetailedTask.Assignees {
 			assingnee := kitsu.GetPerson(elem)
 			if assingnee.Phone != "" {
@@ -199,37 +199,38 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 	var commentUpdatedAt = ""
 
 	//var debug = ""
+	if conf.Notification.NoComments != true {
+		currentComments := kitsu.GetComment(currentDetailedTask.ID)
+		if len(currentComments.Each) > 0 {
+			// find the most recent comment in array
+			sort.Slice(currentComments.Each, func(i, j int) bool {
+				layout := "2006-01-02T15:04:05"
+				a, err := time.Parse(layout, currentComments.Each[i].UpdatedAt)
+				if err != nil {
+					fmt.Println(err)
+				}
+				b, err := time.Parse(layout, currentComments.Each[j].UpdatedAt)
+				if err != nil {
+					fmt.Println(err)
+				}
+				return a.Unix() > b.Unix()
+			})
 
-	currentComments := kitsu.GetComment(currentDetailedTask.ID)
-	if len(currentComments.Each) > 0 {
-		// find the most recent comment in array
-		sort.Slice(currentComments.Each, func(i, j int) bool {
-			layout := "2006-01-02T15:04:05"
-			a, err := time.Parse(layout, currentComments.Each[i].UpdatedAt)
-			if err != nil {
-				fmt.Println(err)
+			//debug = "Newest comment is \n - updated: " + currentComments.Each[0].UpdatedAt + "\n - text: " + currentComments.Each[0].Text
+
+			commentID = currentComments.Each[0].ID
+			commentUpdatedAt = currentComments.Each[0].UpdatedAt
+			//commentAuthor = kitsu.GetPerson(currentComments.Each[0].PersonID)
+
+			truncatedComment := truncate.TruncateString(currentComments.Each[0].Text, 128)
+			if truncatedComment != currentComments.Each[0].Text {
+				truncatedComment += "..."
 			}
-			b, err := time.Parse(layout, currentComments.Each[j].UpdatedAt)
-			if err != nil {
-				fmt.Println(err)
+
+			if currentComments.Each[0].Text != "" {
+				commentAuthor := kitsu.GetPerson(currentComments.Each[0].PersonID)
+				commentMessage = "\n<pre>" + commentAuthor.FullName + ":\n" + truncatedComment + "</pre>"
 			}
-			return a.Unix() > b.Unix()
-		})
-
-		//debug = "Newest comment is \n - updated: " + currentComments.Each[0].UpdatedAt + "\n - text: " + currentComments.Each[0].Text
-
-		commentID = currentComments.Each[0].ID
-		commentUpdatedAt = currentComments.Each[0].UpdatedAt
-		//commentAuthor = kitsu.GetPerson(currentComments.Each[0].PersonID)
-
-		truncatedComment := truncate.TruncateString(currentComments.Each[0].Text, 128)
-		if truncatedComment != currentComments.Each[0].Text {
-			truncatedComment += "..."
-		}
-
-		if currentComments.Each[0].Text != "" {
-			commentAuthor := kitsu.GetPerson(currentComments.Each[0].PersonID)
-			commentMessage = "\n<pre>" + commentAuthor.FullName + ":\n" + truncatedComment + "</pre>"
 		}
 	}
 

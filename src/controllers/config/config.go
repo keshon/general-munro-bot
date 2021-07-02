@@ -33,6 +33,8 @@ type Config struct {
 		IsEnabled              bool
 		Threads                int
 		PollDuration           int
+		NoMentions             bool
+		NoComments             bool
 		CommentTruncateAt      int
 		SilentUpdate           bool
 		SuppressUndefinedRoles bool

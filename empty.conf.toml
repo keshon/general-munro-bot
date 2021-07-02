@@ -40,6 +40,7 @@ language = "en"
 is_enabled = true
 threads = 64 # set 0 to go synchronous way (the slowest)
 poll_duration = 5 # in minutes
+no_mentions = true # don't use mentions via `@`
 comment_truncate_at = 128 # in characters
 silent_update = false # set to true for the first run
 suppress_undefined_roles = true # dont inform Administrator for messages that were not addressed to existing chat roles
@@ -62,7 +63,6 @@ done_statuses = [
 ]
 
 # Everything about backups attached files from Kitsu. Poll duration - how often backup should be initiated.
-# If fast delete is set to true - uploaded file to S3 will be deleted from local dir immediately.
 [backup]
 is_enabled = true
 threads = 16 # set 0 to go synchronous way (the slowest)
