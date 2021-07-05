@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hokaccha/go-prettyjson"
@@ -131,6 +132,24 @@ func ListenBotUpdates(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, con
 				msg.ParseMode = "html"
 				bot.Send(msg)
 			}
+
+			chatID, _ = strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
+			if int64(update.Message.From.ID) == chatID {
+				switch command {
+				case "/resync_backup":
+					if conf.Backup.IsEnabled == true {
+						// clear status in table or drop table
+						msg := tgbotapi.NewMessage(chatID, i18n.Tr(conf.Bot.Language, "backup-resync-success"))
+						msg.ParseMode = "html"
+						bot.Send(msg)
+					} else {
+						msg := tgbotapi.NewMessage(chatID, i18n.Tr(conf.Bot.Language, "backup-disabled"))
+						msg.ParseMode = "html"
+						bot.Send(msg)
+					}
+				}
+			}
+
 		}
 	}
 }
@@ -139,15 +158,34 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 	// Get all Tasks
 	array := kitsu.GetTasks()
 
-	// Concurent threads from conf
-	threads := conf.Notification.Threads
-	if threads < 1 {
-		threads = 1
+	if len(array.Each) <= 0 {
+		return
 	}
 
-	if len(array.Each) > 0 {
+	// Concurent threads from conf
+	threads := conf.Notification.Threads
 
-		// sem is a channel that will allow up to 10 concurrent operations.
+	if threads < 0 {
+		// Async
+		var wg sync.WaitGroup
+		wg.Add(len(array.Each))
+
+		for _, elem := range array.Each {
+			go func(elem kitsu.Task) {
+				defer wg.Done()
+				ParseTaskStatus(bot, conf, db, elem)
+			}(elem)
+		}
+		wg.Wait()
+
+	} else if threads == 0 {
+		// Sync
+		for _, elem := range array.Each {
+			ParseTaskStatus(bot, conf, db, elem)
+		}
+
+	} else if threads > 0 {
+		// Semafore async
 		var sem = make(chan int, threads)
 
 		for _, elem := range array.Each {
@@ -158,6 +196,7 @@ func ParseTaskStatuses(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db
 				<-sem
 			}()
 		}
+
 	}
 }
 
@@ -343,16 +382,42 @@ func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db 
 	// Get all Attachments
 	array := kitsu.GetAttachments()
 
-	// Concurent threads from conf
-	threads := conf.Backup.Threads
-	if threads < 1 {
-		threads = 1
+	if len(array.Each) <= 0 {
+		return
 	}
 
-	if len(array.Each) > 0 {
-		var count int
+	// Concurent threads from conf
+	threads := conf.Backup.Threads
 
-		// sem is a channel that will allow up to 10 concurrent operations.
+	var count int
+
+	if threads < 0 {
+		// Async
+		var wg sync.WaitGroup
+		wg.Add(len(array.Each))
+
+		for _, elem := range array.Each {
+			go func(elem kitsu.Attachment) {
+				defer wg.Done()
+				resp := ParseAttachment(bot, conf, db, elem)
+				if resp == true {
+					count++
+				}
+			}(elem)
+		}
+		wg.Wait()
+
+	} else if threads == 0 {
+		// Sync
+		for _, elem := range array.Each {
+			resp := ParseAttachment(bot, conf, db, elem)
+			if resp == true {
+				count++
+			}
+		}
+
+	} else if threads > 0 {
+		// Semafore async
 		var sem = make(chan int, threads)
 
 		for _, elem := range array.Each {
@@ -367,16 +432,18 @@ func ParseAttachments(bot *tgbotapi.BotAPI, conf config.Config, t time.Time, db 
 			}()
 		}
 
-		if count > 0 {
-			chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
-			bot.Send(tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping))
-			strCount := strconv.Itoa(count)
-			message := i18n.Tr(conf.Bot.Language, "backup-finished") + strCount
-			msg := tgbotapi.NewMessage(chatID, message)
-			msg.ParseMode = "html"
-			bot.Send(msg)
-		}
 	}
+
+	if count > 0 {
+		chatID, _ := strconv.ParseInt(conf.Notification.AdminChatID, 10, 64)
+		bot.Send(tgbotapi.NewChatAction(chatID, tgbotapi.ChatTyping))
+		strCount := strconv.Itoa(count)
+		message := i18n.Tr(conf.Bot.Language, "backup-finished") + strCount
+		msg := tgbotapi.NewMessage(chatID, message)
+		msg.ParseMode = "html"
+		bot.Send(msg)
+	}
+
 }
 
 func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, attachment kitsu.Attachment) bool {

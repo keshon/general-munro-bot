@@ -81,7 +81,6 @@ func main() {
 				fmt.Println("START checking Attachments at " + time.Now().String())
 				munro.ParseAttachments(bot, conf, x, db)
 				fmt.Println("DONE checking Attachments at " + time.Now().String())
-
 			}
 		}()
 	}
