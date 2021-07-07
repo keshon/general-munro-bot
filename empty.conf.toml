@@ -38,7 +38,7 @@ language = "en"
 # .. with `chat_id` field contatining the ID. Put it to `admin_chat_id` - you are now the admin.
 [notification]
 is_enabled = true
-threads = 64 # set 0 to go synchronous way (the slowest)
+threads = 64 # set 0 to go synchronous way (the slowest), -1 for wait groups, > 0 - semafore threads (unstable)
 poll_duration = 5 # in minutes
 no_mentions = true # don't use mentions via `@`
 comment_truncate_at = 128 # in characters
@@ -65,7 +65,7 @@ done_statuses = [
 # Everything about backups attached files from Kitsu. Poll duration - how often backup should be initiated.
 [backup]
 is_enabled = true
-threads = 16 # set 0 to go synchronous way (the slowest)
+threads = 16 # set 0 to go synchronous way (the slowest), -1 for wait groups, > 0 - semafore threads (unstable)
 poll_duration = 360 # in minutes
 local_storage = "./tmp/" # trailing slash is mandatory
 ignore = ["jpg", "jpeg", "JPG", "JPEG"]
