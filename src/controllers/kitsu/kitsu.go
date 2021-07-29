@@ -2,8 +2,8 @@
 package kitsu
 
 import (
-	"bot/src/controllers/config"
-	"bot/src/utils/debug"
+	"app/src/utils/config"
+	"app/src/utils/debug"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -78,6 +78,11 @@ type Entity struct {
 
 type Entities struct {
 	Each []Entity
+}
+
+type EntityType struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type TaskStatus struct {
@@ -410,6 +415,49 @@ func GetEntity(EntityID string) Entity {
 	err = json.Unmarshal([]byte(strBody), &typBody)
 	if err != nil {
 		//return Entity{}
+		panic(err)
+	}
+
+	return typBody
+}
+
+func GetEntityType(entityTypeID string) EntityType {
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodGet, config.Read().Kitsu.Hostname+"api/data/entity-types/"+entityTypeID, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set content type
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("JWTToken"))
+
+	// Fetch request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	// Display results
+	debug.Info(resp, respBody)
+
+	// Unmarshal
+	strBody := string(respBody)
+	var typBody EntityType
+
+	err = json.Unmarshal([]byte(strBody), &typBody)
+	if err != nil {
+		//return TaskType{}
 		panic(err)
 	}
 

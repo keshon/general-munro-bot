@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bot/src/controllers/basicauth"
-	"bot/src/controllers/config"
-	"bot/src/controllers/munro"
-	"bot/src/controllers/routes"
-	"bot/src/controllers/storage"
-	"bot/src/utils/remove"
+	"app/src/controllers/basicauth"
+	"app/src/controllers/munro"
+	"app/src/controllers/routes"
+	"app/src/controllers/storage"
+	"app/src/utils/config"
+	"app/src/utils/remove"
 	"fmt"
 
 	"log"

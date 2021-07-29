@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"bot/src/controllers/config"
-	"bot/src/controllers/kitsu"
-	"bot/src/controllers/munro"
+	"app/src/controllers/kitsu"
+	"app/src/controllers/munro"
+	"app/src/utils/config"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"gorm.io/gorm"

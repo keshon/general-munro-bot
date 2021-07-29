@@ -2,7 +2,7 @@
 package basicauth
 
 import (
-	"bot/src/utils/debug"
+	"app/src/utils/debug"
 	"bytes"
 	"encoding/json"
 	"fmt"

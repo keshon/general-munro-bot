@@ -1,12 +1,12 @@
 package munro
 
 import (
-	"bot/src/controllers/config"
-	"bot/src/controllers/kitsu"
-	"bot/src/controllers/storage"
-	"bot/src/controllers/wasabi"
-	"bot/src/utils/sanitize"
-	"bot/src/utils/truncate"
+	"app/src/controllers/kitsu"
+	"app/src/controllers/storage"
+	"app/src/controllers/wasabi"
+	"app/src/utils/config"
+	"app/src/utils/sanitize"
+	"app/src/utils/truncate"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -495,6 +495,15 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 			entityName = sanitize.Sanitize(entity.Name) + "/"
 		}
 
+		// Get entity type
+		entityType := kitsu.GetEntityType(entity.EntityTypeID)
+		entityTypeName := ""
+		if entityType.Name == "" {
+			entityTypeName = "_Unsorted" + "/"
+		} else {
+			entityTypeName = entityType.Name + "/"
+		}
+
 		// Get task type (Sub Task)
 		taskType := kitsu.GetTaskType(task.TaskTypeID)
 		taskTypeName := ""
@@ -510,7 +519,7 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		}
 		//projectStatus := kitsu.GetProjectStatus(project.ProjectStatusID)
 
-		s3Path = conf.Backup.S3.RootFolderName + "/" + projectName + entityName + taskTypeName + attachment.Name
+		s3Path = conf.Backup.S3.RootFolderName + "/" + projectName + entityTypeName + entityName + taskTypeName + attachment.Name
 	} else {
 		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachment.Name
 	}

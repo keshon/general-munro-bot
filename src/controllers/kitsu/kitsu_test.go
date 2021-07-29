@@ -1,8 +1,8 @@
 package kitsu
 
 import (
-	basicauth "bot/src/controllers/basicauth"
-	config "bot/src/controllers/config"
+	basicauth "app/src/controllers/basicauth"
+	config "app/src/utils/config"
 	"os"
 	"testing"
 )

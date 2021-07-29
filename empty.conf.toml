@@ -15,7 +15,7 @@ debug = false
 hostname = "https://url/" # trailing slash is mandatory
 email = "" # your Kitsu login
 password = "" # # your Kitsu password
-listenHostname = "127.0.0.1:3001" # hostname listener for Kitsu custom actions (no need it)
+listen_hostname = "127.0.0.1:3001" # hostname listener for Kitsu custom actions (no need it)
 
 # Telegram bot relating settings in order to receive all sorts of notifications via Telegram
 # You need obtain Bot token via @BotFather and also(!) change settings: enable groups access and disable group privacy.
@@ -25,10 +25,10 @@ listenHostname = "127.0.0.1:3001" # hostname listener for Kitsu custom actions (
 [bot]
 debug = false
 token = "" # ask @BotFather in Telegram to obtain one
-stateTimeout = 600 # in milliseconds
+state_timeout = 600 # in milliseconds
 webhook = false # use webhook or poll updates methods. Webhook is faster and reliable but requires a domain
 hostname = "https://url/" # trailing slash is mandatory
-listenHostname = "0.0.0.0:1338" # specify port for webhook listener
+listen_hostname = "0.0.0.0:1338" # specify port for webhook listener
 language = "en"
 
 # Everything about notifications for updated statuses in Kitsu. Poll duration dictates how often bot should check Kitsu for updates.

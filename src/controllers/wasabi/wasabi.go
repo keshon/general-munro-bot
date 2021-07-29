@@ -1,7 +1,7 @@
 package wasabi
 
 import (
-	"bot/src/controllers/config"
+	"app/src/utils/config"
 	"fmt"
 	"strings"
 

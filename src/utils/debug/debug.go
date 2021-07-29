@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"bot/src/controllers/config"
+	"app/src/utils/config"
 	"bytes"
 	"encoding/json"
 	"fmt"
