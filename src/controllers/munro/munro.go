@@ -220,6 +220,16 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 	currentEntity := kitsu.GetEntity(task.EntityID)
 	entityName := currentEntity.Name
 
+	// Parse project name (production)
+	projectName := ""
+	if conf.Notification.NoProject == false {
+		project := kitsu.GetProject(currentEntity.ProjectID)
+
+		if project.Name != "" {
+			projectName = " (" + sanitize.Sanitize(project.Name) + ") "
+		}
+	}
+
 	// Get assingee for the Task and his phone data (we store Telegram nicknames there)
 	currentDetailedTask := kitsu.GetTask(task.ID)
 	var assigneePhone = ""
@@ -288,9 +298,9 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 
 				// Same status or not
 				if result.TaskStatus != currentTaskStatus.ShortName {
-					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + strings.ToLower(result.TaskStatus) + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
+					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "updated-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> (" + i18n.Tr(conf.Bot.Language, "prev-status") + " " + strings.ToLower(result.TaskStatus) + ") " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>" + projectName
 				} else {
-					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
+					messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>" + projectName
 				}
 
 				if commentMessage != "" {
@@ -322,7 +332,7 @@ func ParseTaskStatus(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, task
 		if conf.Notification.SilentUpdate != true {
 
 			// Compose message
-			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>"
+			messageTemplate += assigneePhone + i18n.Tr(conf.Bot.Language, "new-status") + " <b>" + strings.ToUpper(currentTaskStatus.ShortName) + "</b> " + i18n.Tr(conf.Bot.Language, "for-task") + " " + "<i>" + entityName + "</i>" + projectName
 
 			if commentMessage != "" {
 				messageTemplate += commentMessage

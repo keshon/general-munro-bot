@@ -35,6 +35,7 @@ type Config struct {
 		PollDuration           int
 		NoMentions             bool
 		NoComments             bool
+		NoProject              bool
 		CommentTruncateAt      int
 		SilentUpdate           bool
 		SuppressUndefinedRoles bool
