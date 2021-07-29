@@ -484,6 +484,13 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 	localPath := conf.Backup.LocalStorage + attachment.ID
 
 	s3Path := ""
+
+	// Attachment name
+	attachmentName := ""
+	if attachment.Name != "" {
+		attachmentName = sanitize.Sanitize(attachment.Name)
+	}
+
 	if attachment.Comment.ObjectID != "" {
 
 		task := kitsu.GetTask(attachment.Comment.ObjectID)
@@ -501,7 +508,7 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		if entityType.Name == "" {
 			entityTypeName = "_Unsorted" + "/"
 		} else {
-			entityTypeName = entityType.Name + "/"
+			entityTypeName = sanitize.Sanitize(entityType.Name) + "/"
 		}
 
 		// Get task type (Sub Task)
@@ -519,9 +526,9 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		}
 		//projectStatus := kitsu.GetProjectStatus(project.ProjectStatusID)
 
-		s3Path = conf.Backup.S3.RootFolderName + "/" + projectName + entityTypeName + entityName + taskTypeName + attachment.Name
+		s3Path = conf.Backup.S3.RootFolderName + "/" + projectName + entityTypeName + entityName + taskTypeName + attachmentName
 	} else {
-		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachment.Name
+		s3Path = conf.Backup.S3.RootFolderName + "/" + "LOST.FILES" + "/" + attachment.ID + "/" + attachmentName
 	}
 
 	if len(result.AttachmentID) > 0 {
@@ -529,10 +536,10 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		if result.AttachmentStatus != "done" || result.AttachmentUpdatedAt != attachment.UpdatedAt {
 			// update
 			storage.UpdateAttachment(db, attachment.ID, attachment.UpdatedAt, "new")
-			kitsu.DownloadAttachment(localPath, attachment.ID, attachment.Name, conf)
+			kitsu.DownloadAttachment(localPath, attachment.ID, attachmentName, conf)
 
 			// Read file from local dir
-			content, err := ioutil.ReadFile(localPath + "/" + attachment.Name)
+			content, err := ioutil.ReadFile(localPath + "/" + attachmentName)
 			if err != nil {
 				panic(err)
 			}
@@ -541,7 +548,7 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 			wasabi.UploadFile(s3Path, string(content), conf)
 			storage.UpdateAttachment(db, attachment.ID, attachment.UpdatedAt, "done")
 		} else {
-			fmt.Println("Skipping existing attachment: " + attachment.Name)
+			fmt.Println("Skipping existing attachment: " + attachmentName)
 			return false
 		}
 
@@ -549,10 +556,10 @@ func ParseAttachment(bot *tgbotapi.BotAPI, conf config.Config, db *gorm.DB, atta
 		// create
 		// Download file from Kitsu
 		storage.CreateAttachment(db, attachment.ID, attachment.UpdatedAt, "new")
-		kitsu.DownloadAttachment(localPath, attachment.ID, attachment.Name, conf)
+		kitsu.DownloadAttachment(localPath, attachment.ID, attachmentName, conf)
 
 		// Read file from local dir
-		content, err := ioutil.ReadFile(localPath + "/" + attachment.Name)
+		content, err := ioutil.ReadFile(localPath + "/" + attachmentName)
 		if err != nil {
 			panic(err)
 		}
